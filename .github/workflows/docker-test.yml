@@ -1,0 +1,105 @@
+name: Docker Image CI (Local Build Only)
+
+on:
+  pull_request:
+    types:
+      - closed
+    branches:
+      - 'main'
+
+jobs:
+  build_images:
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out the repo
+        uses: actions/checkout@v3
+
+      #################################
+      ######   Docker Image: Ruby #####
+      #################################
+      - name: Build Docker image - Ruby
+        if: contains(github.event.pull_request.labels.*.name, 'lang/ruby')
+        run: |
+          docker build -t ruby -f ./ruby/Dockerfile ./ruby
+
+      #################################
+      ######   Docker Image: Python ###
+      #################################
+      - name: Build Docker image - Python
+        if: contains(github.event.pull_request.labels.*.name, 'lang/python')
+        run: |
+          docker build -t python -f ./python/Dockerfile ./python
+
+      #################################
+      ######   Docker Image: JS v3 ####
+      #################################
+      - name: Build Docker image - JavaScript
+        if: contains(github.event.pull_request.labels.*.name, 'lang/javascript-v3')
+        run: |
+          docker build -t javascriptv3 -f ./javascriptv3/Dockerfile ./javascriptv3
+
+      #################################
+      ######   Docker Image: Rust #####
+      #################################
+      - name: Build Docker image - Rust
+        if: contains(github.event.pull_request.labels.*.name, 'lang/rust')
+        run: |
+          docker build -t rust_dev_preview -f ./rust_dev_preview/Dockerfile ./rust_dev_preview
+
+      #################################
+      ######   Docker Image: Go v2 ####
+      #################################
+      - name: Build Docker image - GoLang
+        if: contains(github.event.pull_request.labels.*.name, 'lang/gov-2')
+        run: |
+          docker build -t gov2 -f ./gov2/Dockerfile ./gov2
+
+      #################################
+      ######   Docker Image: C++ ######
+      #################################
+      - name: Build Docker image - C++
+        if: contains(github.event.pull_request.labels.*.name, 'lang/cpp')
+        run: |
+          docker build -t cpp -f ./cpp/Dockerfile ./cpp
+
+      #################################
+      ######   Docker Image: .NET #####
+      #################################
+      - name: Build Docker image - .NET v3
+        if: contains(github.event.pull_request.labels.*.name, 'lang/dotnet-v3')
+        run: |
+          docker build -t dotnetv3 -f ./dotnetv3/Dockerfile ./dotnetv3
+
+      #################################
+      ######   Docker Image: Java #####
+      #################################
+      - name: Build Docker image - Java v2
+        if: contains(github.event.pull_request.labels.*.name, 'lang/java-v2')
+        run: |
+          docker build -t javav2 -f ./javav2/Dockerfile ./javav2
+
+      #################################
+      ######   Docker Image: Kotlin ###
+      #################################
+      - name: Build Docker image - Kotlin
+        if: contains(github.event.pull_request.labels.*.name, 'lang/kotlin')
+        run: |
+          docker build -t kotlin -f ./kotlin/Dockerfile ./kotlin
+
+      #################################
+      ######   Docker Image: PHP ######
+      #################################
+      - name: Build Docker image - PHP
+        if: contains(github.event.pull_request.labels.*.name, 'lang/php')
+        run: |
+          docker build -t php -f ./php/Dockerfile ./php
+
+      #################################
+      ######   Docker Image: Swift ####
+      #################################
+      - name: Build Docker image - Swift
+        if: contains(github.event.pull_request.labels.*.name, 'lang/swift')
+        run: |
+          docker build -t swift -f ./swift/Dockerfile ./swift
