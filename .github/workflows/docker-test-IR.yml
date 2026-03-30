@@ -11,19 +11,19 @@ jobs:
       - name: Check out the repo
         uses: actions/checkout@v3
 
-      #################################
-      ######   Docker Image: Ruby #####
-      #################################
-      - name: Build Docker image - Ruby
-        run: |
-          docker build -t ruby -f ./ruby/Dockerfile ./ruby
+      # #################################
+      # ######   Docker Image: Ruby #####
+      # #################################
+      # - name: Build Docker image - Ruby
+      #   run: |
+      #     docker build -t ruby -f ./ruby/Dockerfile ./ruby
 
-      #################################
-      ######   Docker Image: Python ###
-      #################################
-      - name: Build Docker image - Python
-        run: |
-          docker build -t python -f ./python/Dockerfile ./python
+      # #################################
+      # ######   Docker Image: Python ###
+      # #################################
+      # - name: Build Docker image - Python
+      #   run: |
+      #     docker build -t python -f ./python/Dockerfile ./python
 
       #################################
       ######   Docker Image: JS v3 ####
@@ -32,58 +32,58 @@ jobs:
         run: |
           docker build -t javascriptv3 -f ./javascriptv3/Dockerfile ./javascriptv3
 
-      #################################
-      ######   Docker Image: Rust #####
-      #################################
-      - name: Build Docker image - Rust
-        run: |
-          docker build -t rust_dev_preview -f ./rust_dev_preview/Dockerfile ./rust_dev_preview
+      # #################################
+      # ######   Docker Image: Rust #####
+      # #################################
+      # - name: Build Docker image - Rust
+      #   run: |
+      #     docker build -t rust_dev_preview -f ./rust_dev_preview/Dockerfile ./rust_dev_preview
 
-      #################################
-      ######   Docker Image: Go v2 ####
-      #################################
-      - name: Build Docker image - GoLang
-        run: |
-          docker build -t gov2 -f ./gov2/Dockerfile ./gov2
+      # #################################
+      # ######   Docker Image: Go v2 ####
+      # #################################
+      # - name: Build Docker image - GoLang
+      #   run: |
+      #     docker build -t gov2 -f ./gov2/Dockerfile ./gov2
 
-      #################################
-      ######   Docker Image: C++ ######
-      #################################
-      - name: Build Docker image - C++
-        run: |
-          docker build -t cpp -f ./cpp/Dockerfile ./cpp
+      # #################################
+      # ######   Docker Image: C++ ######
+      # #################################
+      # - name: Build Docker image - C++
+      #   run: |
+      #     docker build -t cpp -f ./cpp/Dockerfile ./cpp
 
-      #################################
-      ######   Docker Image: .NET #####
-      #################################
-      - name: Build Docker image - .NET v3
-        run: |
-          docker build -t dotnetv3 -f ./dotnetv3/Dockerfile ./dotnetv3
+      # #################################
+      # ######   Docker Image: .NET #####
+      # #################################
+      # - name: Build Docker image - .NET v3
+      #   run: |
+      #     docker build -t dotnetv3 -f ./dotnetv3/Dockerfile ./dotnetv3
 
-      #################################
-      ######   Docker Image: Java #####
-      #################################
-      - name: Build Docker image - Java v2
-        run: |
-          docker build -t javav2 -f ./javav2/Dockerfile ./javav2
+      # #################################
+      # ######   Docker Image: Java #####
+      # #################################
+      # - name: Build Docker image - Java v2
+      #   run: |
+      #     docker build -t javav2 -f ./javav2/Dockerfile ./javav2
 
-      #################################
-      ######   Docker Image: Kotlin ###
-      #################################
-      - name: Build Docker image - Kotlin
-        run: |
-          docker build -t kotlin -f ./kotlin/Dockerfile ./kotlin
+      # #################################
+      # ######   Docker Image: Kotlin ###
+      # #################################
+      # - name: Build Docker image - Kotlin
+      #   run: |
+      #     docker build -t kotlin -f ./kotlin/Dockerfile ./kotlin
 
-      #################################
-      ######   Docker Image: PHP ######
-      #################################
-      - name: Build Docker image - PHP
-        run: |
-          docker build -t php -f ./php/Dockerfile ./php
+      # #################################
+      # ######   Docker Image: PHP ######
+      # #################################
+      # - name: Build Docker image - PHP
+      #   run: |
+      #     docker build -t php -f ./php/Dockerfile ./php
 
-      #################################
-      ######   Docker Image: Swift ####
-      #################################
-      - name: Build Docker image - Swift
-        run: |
-          docker build -t swift -f ./swift/Dockerfile ./swift
+      # #################################
+      # ######   Docker Image: Swift ####
+      # #################################
+      # - name: Build Docker image - Swift
+      #   run: |
+      #     docker build -t swift -f ./swift/Dockerfile ./swift
