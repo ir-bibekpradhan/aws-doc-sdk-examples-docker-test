@@ -6,7 +6,6 @@ on:
 
 jobs:
   build_images:
-   # if: github.event.pull_request.merged == true
     runs-on: ubuntu-latest
 
     steps:
@@ -25,7 +24,6 @@ jobs:
       ######   Docker Image: Python ###
       #################################
       - name: Build Docker image - Python
-        if: contains(github.event.pull_request.labels.*.name, 'lang/python')
         run: |
           docker build -t python -f ./python/Dockerfile ./python
 
