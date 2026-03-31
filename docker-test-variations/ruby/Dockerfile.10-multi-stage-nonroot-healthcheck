@@ -5,7 +5,7 @@
 # non-root user, LABEL metadata, HEALTHCHECK, and slim runtime base.
 
 # ======= Stage 1: Build =======
-FROM ruby:3.1.2-buster AS builder
+FROM ruby:3.2-bookworm AS builder
 
 WORKDIR /build
 
@@ -16,7 +16,7 @@ RUN bundle config set --local deployment 'true' && \
     bundle install --jobs 4 --retry 3
 
 # ======= Stage 2: Runtime =======
-FROM ruby:3.1.2-slim-buster AS runtime
+FROM ruby:3.1.2-slim-bookworm AS runtime
 
 RUN apt-get update && apt-get install -y --no-install-recommends curl \
     && rm -rf /var/lib/apt/lists/* \
