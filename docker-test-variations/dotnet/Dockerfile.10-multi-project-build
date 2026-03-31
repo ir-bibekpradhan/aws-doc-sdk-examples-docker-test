@@ -4,26 +4,16 @@
 # Builds SES, S3, and IAM projects in parallel within one image.
 
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
-
 WORKDIR /src
-
 COPY ./dotnetv3/ .
-
-RUN dotnet restore SES && \
-    dotnet restore S3 && \
-    dotnet restore IAM
-
+RUN find . -name "*.csproj" | xargs -I {} dotnet restore {}
 RUN dotnet publish SES -c Release -o /app/ses && \
     dotnet publish S3  -c Release -o /app/s3  && \
     dotnet publish IAM -c Release -o /app/iam
-
 # ---- Runtime ----
 FROM mcr.microsoft.com/dotnet/aspnet:8.0
-
 WORKDIR /app
-
 COPY --from=build /app/ses ./ses
 COPY --from=build /app/s3  ./s3
 COPY --from=build /app/iam ./iam
-
 CMD ["bash"]
