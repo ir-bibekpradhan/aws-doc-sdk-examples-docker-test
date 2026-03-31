@@ -4,7 +4,7 @@
 # Runs the container with a read-only root filesystem; only /tmp is writable.
 # Ensures the SDK examples do not accidentally modify the image.
 
-FROM ruby:3.2-bookworm
+FROM ruby:3.1.2-bullseye
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
         build-essential \
