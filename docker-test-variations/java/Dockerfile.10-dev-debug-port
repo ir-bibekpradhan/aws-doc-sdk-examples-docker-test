@@ -8,7 +8,7 @@ WORKDIR /javav2/example_code/cloudwatch
 
 COPY ./javav2/example_code/cloudwatch/ .
 
-RUN mvn package -Dmaven.test.skip -q
+RUN mvn package -Dmaven.test.skip -Dcheckstyle.skip -q
 
 EXPOSE 8080 5005
 
