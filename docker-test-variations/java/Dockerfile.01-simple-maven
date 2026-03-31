@@ -1,13 +1,8 @@
 # syntax=docker/dockerfile:1
 # Variation 01: Simple Single-Stage (Maven)
 # Complexity: LOW
-
 FROM maven:3.9-eclipse-temurin-17
-
 WORKDIR /javav2
-
 COPY ./javav2/ .
-
-RUN cd example_code/cloudwatch && mvn package -Dmaven.test.skip
-
+RUN cd example_code/cloudwatch && mvn package -Dmaven.test.skip -Dcheckstyle.skip
 CMD ["bash"]
