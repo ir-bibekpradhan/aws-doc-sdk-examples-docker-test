@@ -7,9 +7,9 @@ ENV DOTNET_CLI_TELEMETRY_OPTOUT=1 \
 WORKDIR /src
 COPY ./dotnetv3/SES/ ./SES/
 RUN --mount=type=cache,target=/nuget-cache \
-    dotnet restore ./SES/
+    dotnet restore ./SES/Actions/SESActions.csproj
 RUN --mount=type=cache,target=/nuget-cache \
-    dotnet publish ./SES/ -c Release \
+    dotnet publish ./SES/Actions/SESActions.csproj -c Release \
         --self-contained true \
         -r linux-x64 \
         -p:PublishSingleFile=true \
