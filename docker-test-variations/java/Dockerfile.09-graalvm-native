@@ -6,9 +6,10 @@ WORKDIR /build
 COPY ./javav2/example_code/cloudwatch/ .
 RUN microdnf install -y maven && \
     mvn package -Dmaven.test.skip -Dcheckstyle.skip -q && \
-    native-image -jar target/*.jar \
+    native-image -cp target/*.jar \
         --no-fallback \
-        -o cloudwatch-native
+        -o cloudwatch-native \
+        com.example.cloudwatch.CloudWatch
 # ---- Minimal runtime ----
 FROM debian:bookworm-slim
 RUN groupadd -r javagroup && useradd -r -g javagroup javauser
