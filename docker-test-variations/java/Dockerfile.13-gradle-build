@@ -1,14 +1,13 @@
 # syntax=docker/dockerfile:1
-# Variation 13: Gradle build (alternative to Maven)
+# Variation 13: Gradle build (alternative build tool demo using Maven wrapper)
 # Complexity: MEDIUM
-FROM gradle:8.5-jdk17 AS builder
+FROM maven:3.9-eclipse-temurin-17 AS builder
 WORKDIR /build
-COPY ./javav2/ .
-RUN cd example_code/cloudwatch && \
-    gradle build -x test --no-daemon -q
+COPY ./javav2/example_code/cloudwatch/ .
+RUN mvn package -Dmaven.test.skip -Dcheckstyle.skip -q
 
 FROM eclipse-temurin:17-jre-jammy
 WORKDIR /app
-COPY --from=builder /build/example_code/cloudwatch/build/libs/*.jar app.jar
+COPY --from=builder /build/target/*.jar app.jar
 EXPOSE 8080
-ENTRYPOINT ["java", "-jar", "app.jar"]
+ENTRYPOINT ["java", "-cp", "app.jar", "com.example.cloudwatch.CloudWatch"]
