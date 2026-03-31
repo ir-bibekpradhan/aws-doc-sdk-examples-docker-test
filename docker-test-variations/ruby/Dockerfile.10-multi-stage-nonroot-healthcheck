@@ -5,7 +5,7 @@
 # non-root user, LABEL metadata, HEALTHCHECK, and slim runtime base.
 
 # ======= Stage 1: Build =======
-FROM ruby:3.2-bookworm AS builder
+FROM ruby:3.1.2-bullseye AS builder
 
 WORKDIR /build
 
