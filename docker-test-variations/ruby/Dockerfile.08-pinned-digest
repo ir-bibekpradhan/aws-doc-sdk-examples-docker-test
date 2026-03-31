@@ -4,7 +4,7 @@
 # Pins the base image to a specific SHA256 digest so builds are
 # 100% reproducible regardless of tag mutations.
 
-FROM ruby:3.1.2-bookworm
+FROM ruby:3.1.2-bullseye
 
 WORKDIR /ruby
 
