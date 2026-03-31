@@ -10,7 +10,7 @@ RUN microdnf install -y maven && \
     MAIN_JAR=$(ls target/*.jar | grep -v deps) && \
     native-image -cp "$MAIN_JAR:target/deps/*" \
         --no-fallback \
-        --initialize-at-run-time=org.slf4j \
+        --initialize-at-build-time=org.slf4j \
         -o cloudwatch-native \
         com.example.cloudwatch.PutMetricData
 # ---- Minimal runtime ----
