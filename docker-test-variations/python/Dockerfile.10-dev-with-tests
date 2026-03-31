@@ -1,0 +1,24 @@
+# syntax=docker/dockerfile:1
+# Variation 10: Dev image with debugger + test tools
+# Complexity: MEDIUM
+# Installs pytest, ipdb, and boto3-stubs so developers can run tests
+# interactively inside the container.
+
+FROM python:3.11
+
+WORKDIR /python
+
+COPY ./python/ .
+
+RUN pip install --no-cache-dir \
+        -r example_code/dynamodb/requirements.txt \
+        pytest \
+        pytest-cov \
+        ipdb \
+        "boto3-stubs[essential]"
+
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PYTHONPATH=/python
+
+CMD ["bash"]

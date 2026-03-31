@@ -1,0 +1,26 @@
+# syntax=docker/dockerfile:1
+# Variation 02: PHP-FPM + Nginx (web runtime)
+# Complexity: MEDIUM
+# Composer stage installs deps; final stage runs PHP-FPM behind Nginx.
+
+FROM composer:2 AS composer-build
+
+WORKDIR /build
+
+COPY ./php/example_code/s3/composer.json ./php/example_code/s3/composer.lock* ./
+
+RUN composer install --no-dev --optimize-autoloader --no-interaction
+
+COPY ./php/example_code/s3/ .
+
+# ---- Runtime ----
+FROM php:8.2-fpm-alpine
+
+RUN apk add --no-cache nginx
+
+COPY --from=composer-build /build /var/www/html
+COPY --from=composer-build /build/vendor /var/www/html/vendor
+
+EXPOSE 80
+
+CMD ["php-fpm"]

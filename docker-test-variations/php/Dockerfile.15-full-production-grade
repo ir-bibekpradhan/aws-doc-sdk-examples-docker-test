@@ -1,0 +1,54 @@
+# syntax=docker/dockerfile:1
+# Variation 15: Full production-grade (all best-practices)
+# Complexity: HIGHEST
+# Multi-stage, BuildKit Composer cache, OPcache, non-root, HEALTHCHECK,
+# LABEL, PHP extensions, Alpine runtime, hardened env.
+
+# ======= Stage 1: Composer dependencies =======
+FROM composer:2 AS deps
+
+WORKDIR /build
+
+COPY ./php/example_code/glue/composer.json ./php/example_code/glue/composer.lock* ./
+
+RUN --mount=type=cache,target=/root/.composer/cache \
+    COMPOSER_ALLOW_SUPERUSER=1 composer install \
+        --no-dev \
+        --optimize-autoloader \
+        --classmap-authoritative \
+        --no-interaction \
+        --no-progress
+
+# ======= Stage 2: Final runtime =======
+FROM php:8.2-fpm-alpine3.18 AS final
+
+RUN apk add --no-cache \
+        libzip-dev zip unzip curl icu-dev oniguruma-dev \
+    && docker-php-ext-install zip opcache intl mbstring \
+    && addgroup -S phpgroup \
+    && adduser -S -G phpgroup phpuser
+
+# OPcache production settings
+RUN echo "opcache.enable=1" >> /usr/local/etc/php/conf.d/opcache.ini && \
+    echo "opcache.memory_consumption=128" >> /usr/local/etc/php/conf.d/opcache.ini && \
+    echo "opcache.max_accelerated_files=10000" >> /usr/local/etc/php/conf.d/opcache.ini && \
+    echo "opcache.validate_timestamps=0" >> /usr/local/etc/php/conf.d/opcache.ini
+
+WORKDIR /php
+
+COPY --from=deps --chown=phpuser:phpgroup /build/vendor ./example_code/glue/vendor
+COPY --chown=phpuser:phpgroup ./php/ .
+
+USER phpuser
+
+EXPOSE 9000
+
+HEALTHCHECK --interval=30s --timeout=10s --start-period=10s --retries=3 \
+    CMD php -r "echo 'OK';" || exit 1
+
+LABEL org.opencontainers.image.title="php-aws-sdk-examples-prod" \
+      org.opencontainers.image.version="8.2" \
+      org.opencontainers.image.source="https://github.com/awsdocs/aws-doc-sdk-examples" \
+      org.opencontainers.image.licenses="Apache-2.0"
+
+CMD ["php-fpm"]

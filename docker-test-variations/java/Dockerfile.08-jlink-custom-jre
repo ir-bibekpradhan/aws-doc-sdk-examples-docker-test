@@ -1,0 +1,39 @@
+# syntax=docker/dockerfile:1
+# Variation 08: JLink custom JRE (minimal JRE from jlink)
+# Complexity: HIGH
+# jlink builds a stripped-down JRE containing only required modules,
+# further reducing the runtime image size.
+
+FROM eclipse-temurin:17-jdk-jammy AS jlink-builder
+
+RUN jlink \
+    --module-path "$JAVA_HOME/jmods" \
+    --add-modules java.base,java.logging,java.net.http,java.sql,java.xml \
+    --strip-debug \
+    --no-man-pages \
+    --no-header-files \
+    --compress=2 \
+    --output /jre-custom
+
+FROM maven:3.9-eclipse-temurin-17 AS app-builder
+
+WORKDIR /build
+
+COPY ./javav2/example_code/cloudwatch/ .
+
+RUN mvn package -Dmaven.test.skip -q
+
+# ---- Minimal runtime ----
+FROM debian:bookworm-slim
+
+COPY --from=jlink-builder /jre-custom /opt/jre
+COPY --from=app-builder /build/target/*.jar /app/app.jar
+
+ENV PATH="/opt/jre/bin:$PATH" \
+    JAVA_HOME=/opt/jre
+
+WORKDIR /app
+
+EXPOSE 8080
+
+ENTRYPOINT ["java", "-jar", "app.jar"]

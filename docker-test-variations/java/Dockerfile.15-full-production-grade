@@ -1,0 +1,64 @@
+# syntax=docker/dockerfile:1
+# Variation 15: Full production-grade (all best-practices)
+# Complexity: HIGHEST
+# Multi-stage, BuildKit M2 cache, jlink custom JRE, non-root, HEALTHCHECK,
+# LABEL, JVM container tuning, layered copy, VOLUME for tmpfs.
+
+# ======= Stage 1: Build =======
+FROM maven:3.9-eclipse-temurin-17 AS maven-build
+
+WORKDIR /build
+
+COPY ./javav2/example_code/cloudwatch/pom.xml ./
+
+RUN --mount=type=cache,target=/root/.m2/repository \
+    mvn dependency:go-offline -q
+
+COPY ./javav2/example_code/cloudwatch/ .
+
+RUN --mount=type=cache,target=/root/.m2/repository \
+    mvn package -Dmaven.test.skip -q
+
+# ======= Stage 2: Custom JRE =======
+FROM eclipse-temurin:17-jdk-jammy AS jlink-stage
+
+RUN jlink \
+    --module-path "$JAVA_HOME/jmods" \
+    --add-modules java.base,java.logging,java.net.http,java.sql,java.xml,java.naming \
+    --strip-debug \
+    --no-man-pages \
+    --no-header-files \
+    --compress=2 \
+    --output /jre-minimal
+
+# ======= Stage 3: Final runtime =======
+FROM debian:bookworm-slim AS final
+
+RUN groupadd -r javagroup && useradd -r -g javagroup -m javauser \
+    && apt-get update && apt-get install -y --no-install-recommends curl \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY --from=jlink-stage /jre-minimal /opt/jre
+COPY --from=maven-build --chown=javauser:javagroup /build/target/*.jar /app/app.jar
+
+ENV PATH="/opt/jre/bin:$PATH" \
+    JAVA_HOME=/opt/jre \
+    JAVA_OPTS="-XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0 -XX:+UseG1GC -Djava.security.egd=file:/dev/./urandom"
+
+WORKDIR /app
+
+USER javauser
+
+EXPOSE 8080
+
+VOLUME ["/tmp"]
+
+HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
+    CMD curl -f http://localhost:8080/actuator/health || exit 1
+
+LABEL org.opencontainers.image.title="javav2-aws-sdk-examples-prod" \
+      org.opencontainers.image.version="17" \
+      org.opencontainers.image.source="https://github.com/awsdocs/aws-doc-sdk-examples" \
+      org.opencontainers.image.licenses="Apache-2.0"
+
+ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -jar app.jar"]

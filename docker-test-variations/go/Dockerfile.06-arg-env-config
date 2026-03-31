@@ -1,0 +1,18 @@
+# syntax=docker/dockerfile:1
+# Variation 06: ARG / ENV multi-environment
+# Complexity: LOW-MEDIUM
+# Usage:
+#   docker build --build-arg TARGET_PKG=s3 -t gov2-s3 ...
+
+FROM golang:1.21
+
+ARG TARGET_PKG=dynamodb
+ENV TARGET_PKG=${TARGET_PKG}
+
+WORKDIR /gov2
+
+COPY ./gov2/ .
+
+RUN cd ${TARGET_PKG} && go build ./...
+
+CMD ["bash"]

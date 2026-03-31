@@ -1,0 +1,17 @@
+# syntax=docker/dockerfile:1
+# Variation 10: Dev image with JVM debug port
+# Complexity: MEDIUM
+
+FROM maven:3.9-eclipse-temurin-17
+
+WORKDIR /javav2/example_code/cloudwatch
+
+COPY ./javav2/example_code/cloudwatch/ .
+
+RUN mvn package -Dmaven.test.skip -q
+
+EXPOSE 8080 5005
+
+ENV JAVA_TOOL_OPTIONS="-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005"
+
+ENTRYPOINT ["java", "-jar", "target/cloudwatch-1.0.jar"]

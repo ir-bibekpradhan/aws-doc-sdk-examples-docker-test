@@ -1,0 +1,27 @@
+# syntax=docker/dockerfile:1
+# Variation 14: Read-only filesystem
+# Complexity: HIGH
+
+FROM node:18-slim
+
+RUN groupadd -r nodegroup && useradd -r -g nodegroup -m nodeuser \
+    && apt-get update && apt-get install -y --no-install-recommends curl \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /javascriptv3
+
+COPY --chown=nodeuser:nodegroup ./javascriptv3/package*.json ./
+
+RUN npm ci --omit=dev
+
+COPY --chown=nodeuser:nodegroup ./javascriptv3/ .
+
+USER nodeuser
+
+ENV NODE_ENV=production \
+    NODE_OPTIONS="--max-old-space-size=256"
+
+# Tmpfs for npm cache and logs at runtime
+VOLUME ["/tmp"]
+
+CMD ["bash"]

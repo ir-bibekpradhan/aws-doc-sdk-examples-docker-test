@@ -1,0 +1,28 @@
+# syntax=docker/dockerfile:1
+# Variation 02: Multi-Stage Build
+# Complexity: LOW-MEDIUM
+# Stage 1 installs gems into a vendor/bundle path.
+# Stage 2 copies only the installed gems and app code — no build tools.
+
+FROM ruby:3.1.2-buster AS builder
+
+WORKDIR /build
+
+COPY ./ruby/Gemfile ./ruby/Gemfile.lock ./
+
+RUN bundle config set --local deployment 'true' && \
+    bundle config set --local path 'vendor/bundle' && \
+    bundle install
+
+# ---- Runtime stage ----
+FROM ruby:3.1.2-slim-buster
+
+WORKDIR /ruby
+
+COPY --from=builder /build/vendor/bundle ./vendor/bundle
+COPY ./ruby/ .
+
+RUN bundle config set --local deployment 'true' && \
+    bundle config set --local path 'vendor/bundle'
+
+CMD ["bash"]

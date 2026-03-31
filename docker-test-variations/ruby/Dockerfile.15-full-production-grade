@@ -1,0 +1,51 @@
+# syntax=docker/dockerfile:1
+# Variation 15: Full production-grade (all best-practices combined)
+# Complexity: HIGHEST
+# Multi-stage, Alpine runtime, non-root user, HEALTHCHECK, LABEL,
+# layer-cache optimised, no-cache gem install, ENV hardened.
+
+# ======= Stage 1: Gem installer =======
+FROM ruby:3.1.2-alpine3.16 AS gem-installer
+
+RUN apk add --no-cache build-base openssl-dev libffi-dev git
+
+WORKDIR /build
+
+COPY ./ruby/Gemfile ./ruby/Gemfile.lock ./
+
+RUN bundle config set --local deployment 'true' && \
+    bundle config set --local path 'vendor/bundle' && \
+    bundle config set --local without 'development test' && \
+    bundle install --jobs 4 --retry 3
+
+# ======= Stage 2: Final runtime =======
+FROM ruby:3.1.2-alpine3.16 AS final
+
+RUN apk add --no-cache openssl libffi curl \
+    && addgroup -S rubygroup \
+    && adduser -S -G rubygroup rubyuser
+
+WORKDIR /ruby
+
+COPY --from=gem-installer --chown=rubyuser:rubygroup /build/vendor/bundle ./vendor/bundle
+COPY --chown=rubyuser:rubygroup ./ruby/ .
+
+RUN bundle config set --local deployment 'true' && \
+    bundle config set --local path 'vendor/bundle'
+
+ENV RACK_ENV=production \
+    RUBY_YJIT_ENABLE=1
+
+USER rubyuser
+
+EXPOSE 4567
+
+HEALTHCHECK --interval=30s --timeout=10s --start-period=15s --retries=3 \
+    CMD curl -f http://localhost:4567/ || exit 1
+
+LABEL org.opencontainers.image.title="ruby-aws-sdk-examples-prod" \
+      org.opencontainers.image.version="3.1.2" \
+      org.opencontainers.image.source="https://github.com/awsdocs/aws-doc-sdk-examples" \
+      org.opencontainers.image.licenses="Apache-2.0"
+
+CMD ["bash"]

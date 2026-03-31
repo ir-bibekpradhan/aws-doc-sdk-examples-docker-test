@@ -1,0 +1,16 @@
+# syntax=docker/dockerfile:1
+# Variation 01: Simple Single-Stage
+# Complexity: LOW
+# Copies entire ruby workspace and installs gems via bundle install.
+
+FROM ruby:3.1.2-buster
+
+WORKDIR /ruby
+
+COPY ./ruby/Gemfile ./ruby/Gemfile.lock ./
+
+RUN bundle install
+
+COPY ./ruby/ .
+
+CMD ["bash"]

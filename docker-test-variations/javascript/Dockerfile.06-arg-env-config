@@ -1,0 +1,24 @@
+# syntax=docker/dockerfile:1
+# Variation 06: ARG / ENV multi-environment
+# Complexity: LOW-MEDIUM
+# Usage:
+#   docker build --build-arg NODE_ENV=test -t jsv3-test ...
+
+FROM node:18-slim
+
+ARG NODE_ENV=production
+ENV NODE_ENV=${NODE_ENV}
+
+WORKDIR /javascriptv3
+
+COPY ./javascriptv3/package*.json ./
+
+RUN if [ "$NODE_ENV" = "production" ]; then \
+        npm ci --omit=dev; \
+    else \
+        npm ci; \
+    fi
+
+COPY ./javascriptv3/ .
+
+CMD ["bash"]

@@ -1,0 +1,19 @@
+# syntax=docker/dockerfile:1
+# Variation 05: Non-root user
+# Complexity: MEDIUM
+
+FROM composer/composer:latest
+
+RUN groupadd -r phpgroup && useradd -r -g phpgroup -m phpuser
+
+WORKDIR /php
+
+COPY --chown=phpuser:phpgroup ./php/example_code/glue/composer.json ./example_code/glue/
+
+RUN cd example_code/glue && composer install --no-dev --optimize-autoloader
+
+COPY --chown=phpuser:phpgroup ./php/ .
+
+USER phpuser
+
+CMD ["bash"]

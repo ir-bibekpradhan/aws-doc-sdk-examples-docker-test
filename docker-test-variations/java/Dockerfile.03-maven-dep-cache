@@ -1,0 +1,21 @@
+# syntax=docker/dockerfile:1
+# Variation 03: Maven dependency layer cache
+# Complexity: MEDIUM
+# Copies pom.xml first and runs dependency:go-offline so the large
+# Maven download layer is cached separately from source code.
+
+FROM maven:3.9-eclipse-temurin-17
+
+WORKDIR /javav2/example_code/cloudwatch
+
+# Layer 1: download deps (cache unless pom.xml changes)
+COPY ./javav2/example_code/cloudwatch/pom.xml ./
+
+RUN mvn dependency:go-offline -q
+
+# Layer 2: compile source
+COPY ./javav2/example_code/cloudwatch/ .
+
+RUN mvn package -Dmaven.test.skip -o
+
+CMD ["bash"]

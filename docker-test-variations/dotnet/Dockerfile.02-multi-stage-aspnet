@@ -1,0 +1,22 @@
+# syntax=docker/dockerfile:1
+# Variation 02: Multi-Stage Build (SDK build + ASP.NET runtime)
+# Complexity: MEDIUM
+
+FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
+
+WORKDIR /src
+
+COPY ./dotnetv3/SES/ ./SES/
+
+RUN cd SES && dotnet restore && dotnet publish -c Release -o /app/publish
+
+# ---- Runtime ----
+FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS runtime
+
+WORKDIR /app
+
+COPY --from=build /app/publish .
+
+EXPOSE 80
+
+ENTRYPOINT ["dotnet", "SESV2_Lambda_Example.dll"]

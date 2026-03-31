@@ -1,0 +1,30 @@
+# syntax=docker/dockerfile:1
+# Variation 04: Non-root user (production security)
+# Complexity: MEDIUM
+
+FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
+
+WORKDIR /src
+
+COPY ./dotnetv3/SES/*.csproj ./SES/
+
+RUN cd SES && dotnet restore
+
+COPY ./dotnetv3/SES/ ./SES/
+
+RUN cd SES && dotnet publish -c Release -o /app/publish
+
+# ---- Runtime ----
+FROM mcr.microsoft.com/dotnet/aspnet:8.0
+
+RUN groupadd -r dotnetgroup && useradd -r -g dotnetgroup -m dotnetuser
+
+WORKDIR /app
+
+COPY --from=build --chown=dotnetuser:dotnetgroup /app/publish .
+
+USER dotnetuser
+
+EXPOSE 80
+
+ENTRYPOINT ["dotnet", "SESV2_Lambda_Example.dll"]

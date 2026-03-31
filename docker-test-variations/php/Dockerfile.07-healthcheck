@@ -1,0 +1,26 @@
+# syntax=docker/dockerfile:1
+# Variation 07: HEALTHCHECK included
+# Complexity: MEDIUM
+
+FROM php:8.2-cli-alpine3.18
+
+RUN apk add --no-cache curl libzip-dev zip unzip \
+    && docker-php-ext-install zip
+
+COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
+
+WORKDIR /php
+
+COPY ./php/example_code/glue/composer.json ./example_code/glue/
+
+RUN cd example_code/glue && \
+    COMPOSER_ALLOW_SUPERUSER=1 composer install --no-dev --optimize-autoloader
+
+COPY ./php/ .
+
+EXPOSE 8080
+
+HEALTHCHECK --interval=30s --timeout=10s --start-period=10s --retries=3 \
+    CMD php -r "echo 'OK';" || exit 1
+
+CMD ["php", "-S", "0.0.0.0:8080", "-t", "/php"]

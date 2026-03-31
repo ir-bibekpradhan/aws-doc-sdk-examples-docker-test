@@ -1,0 +1,13 @@
+# syntax=docker/dockerfile:1
+# Variation 01: Simple Single-Stage
+# Complexity: LOW
+
+FROM composer/composer:latest
+
+WORKDIR /php
+
+COPY ./php/ .
+
+RUN cd example_code/glue && composer install
+
+CMD ["bash"]

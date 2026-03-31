@@ -1,0 +1,31 @@
+# syntax=docker/dockerfile:1
+# Variation 13: TypeScript build (transpile to JS)
+# Complexity: HIGH
+# Builder stage installs all deps and runs tsc.
+# Runtime stage only carries compiled JS + prod deps.
+
+FROM node:18 AS ts-builder
+
+WORKDIR /build
+
+COPY ./javascriptv3/package*.json ./
+
+RUN npm ci
+
+COPY ./javascriptv3/ .
+
+# Transpile if tsconfig exists; otherwise just build normally
+RUN if [ -f tsconfig.json ]; then npx tsc --noEmit false 2>/dev/null || true; fi && \
+    npm run build 2>/dev/null || true
+
+# ---- Runtime ----
+FROM node:18-slim AS runtime
+
+WORKDIR /javascriptv3
+
+COPY --from=ts-builder /build/node_modules ./node_modules
+COPY --from=ts-builder /build/ .
+
+ENV NODE_ENV=production
+
+CMD ["bash"]

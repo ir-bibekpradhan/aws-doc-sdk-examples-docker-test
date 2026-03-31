@@ -1,0 +1,30 @@
+# syntax=docker/dockerfile:1
+# Variation 14: Read-only filesystem + tmpfs
+# Complexity: HIGH
+# Runs the container with a read-only root filesystem; only /tmp is writable.
+# Ensures the SDK examples do not accidentally modify the image.
+
+FROM ruby:3.1.2-slim-buster
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        build-essential \
+        libssl-dev \
+    && rm -rf /var/lib/apt/lists/* \
+    && groupadd -r rubygroup \
+    && useradd -r -g rubygroup -m rubyuser
+
+WORKDIR /ruby
+
+COPY --chown=rubyuser:rubygroup ./ruby/Gemfile ./ruby/Gemfile.lock ./
+
+RUN bundle config --delete frozen && \
+    bundle install --jobs 4
+
+COPY --chown=rubyuser:rubygroup ./ruby/ .
+
+USER rubyuser
+
+# Container should be started with: --read-only --tmpfs /tmp:rw,size=64m
+VOLUME ["/tmp"]
+
+CMD ["bash"]

@@ -1,0 +1,37 @@
+# syntax=docker/dockerfile:1
+# Variation 12: Multi-stage + non-root + HEALTHCHECK
+# Complexity: HIGH
+
+FROM node:18 AS builder
+
+WORKDIR /build
+
+COPY ./javascriptv3/package*.json ./
+
+RUN npm ci --omit=dev
+
+COPY ./javascriptv3/ .
+
+# ---- Runtime ----
+FROM node:18-slim AS runtime
+
+RUN apt-get update && apt-get install -y --no-install-recommends curl \
+    && rm -rf /var/lib/apt/lists/* \
+    && groupadd -r nodegroup \
+    && useradd -r -g nodegroup -m nodeuser
+
+WORKDIR /javascriptv3
+
+COPY --from=builder --chown=nodeuser:nodegroup /build/node_modules ./node_modules
+COPY --from=builder --chown=nodeuser:nodegroup /build/ .
+
+USER nodeuser
+
+ENV NODE_ENV=production
+
+EXPOSE 3000
+
+HEALTHCHECK --interval=30s --timeout=10s --start-period=10s --retries=3 \
+    CMD node -e "require('http').get('http://localhost:3000/', r => process.exit(r.statusCode === 200 ? 0 : 1))" || exit 1
+
+CMD ["bash"]

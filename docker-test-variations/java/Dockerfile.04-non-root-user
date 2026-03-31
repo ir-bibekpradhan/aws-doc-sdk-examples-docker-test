@@ -1,0 +1,26 @@
+# syntax=docker/dockerfile:1
+# Variation 04: Non-root user
+# Complexity: MEDIUM
+
+FROM maven:3.9-eclipse-temurin-17 AS builder
+
+WORKDIR /build
+
+COPY ./javav2/example_code/cloudwatch/ .
+
+RUN mvn package -Dmaven.test.skip -q
+
+# ---- Runtime ----
+FROM eclipse-temurin:17-jre-jammy
+
+RUN groupadd -r javagroup && useradd -r -g javagroup -m javauser
+
+WORKDIR /app
+
+COPY --from=builder --chown=javauser:javagroup /build/target/*.jar app.jar
+
+USER javauser
+
+EXPOSE 8080
+
+ENTRYPOINT ["java", "-jar", "app.jar"]

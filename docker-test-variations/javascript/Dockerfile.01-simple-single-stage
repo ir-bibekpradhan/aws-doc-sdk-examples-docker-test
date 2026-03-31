@@ -1,0 +1,13 @@
+# syntax=docker/dockerfile:1
+# Variation 01: Simple Single-Stage
+# Complexity: LOW
+
+FROM node:18
+
+WORKDIR /javascriptv3
+
+COPY ./javascriptv3/ .
+
+RUN npm install
+
+CMD ["bash"]

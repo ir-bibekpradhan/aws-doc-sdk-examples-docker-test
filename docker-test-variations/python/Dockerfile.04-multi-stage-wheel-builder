@@ -1,0 +1,26 @@
+# syntax=docker/dockerfile:1
+# Variation 04: Multi-Stage Build (wheel builder + slim runtime)
+# Complexity: MEDIUM
+# Builder stage compiles wheels; runtime stage installs pre-built wheels
+# without needing compilers in production.
+
+FROM python:3.11 AS builder
+
+WORKDIR /wheels
+
+COPY ./python/example_code/dynamodb/requirements.txt ./requirements.txt
+
+RUN pip wheel --no-cache-dir --wheel-dir /wheels/dist -r requirements.txt
+
+# ---- Runtime ----
+FROM python:3.11-slim AS runtime
+
+WORKDIR /python
+
+COPY --from=builder /wheels/dist /wheels/dist
+COPY ./python/ .
+
+RUN pip install --no-cache-dir --no-index --find-links=/wheels/dist -r example_code/dynamodb/requirements.txt \
+    && rm -rf /wheels
+
+CMD ["bash"]

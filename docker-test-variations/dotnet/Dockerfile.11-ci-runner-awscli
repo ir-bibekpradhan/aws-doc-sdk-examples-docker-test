@@ -1,0 +1,24 @@
+# syntax=docker/dockerfile:1
+# Variation 11: CI Runner (.NET + AWS CLI)
+# Complexity: MEDIUM-HIGH
+
+FROM mcr.microsoft.com/dotnet/sdk:8.0
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        curl unzip git jq ca-certificates \
+    && curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o /tmp/awscliv2.zip \
+    && unzip /tmp/awscliv2.zip -d /tmp \
+    && /tmp/aws/install \
+    && rm -rf /tmp/awscliv2.zip /tmp/aws \
+    && rm -rf /var/lib/apt/lists/*
+
+ENV DOTNET_CLI_TELEMETRY_OPTOUT=1 \
+    AWS_DEFAULT_REGION=us-east-1
+
+WORKDIR /dotnetv3
+
+COPY ./dotnetv3/ .
+
+RUN cd SES && dotnet restore && dotnet build -c Release
+
+CMD ["bash"]

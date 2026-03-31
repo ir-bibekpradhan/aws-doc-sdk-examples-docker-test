@@ -1,0 +1,22 @@
+# syntax=docker/dockerfile:1
+# Variation 02: Multi-Stage Build (Maven build + JRE runtime)
+# Complexity: MEDIUM
+
+FROM maven:3.9-eclipse-temurin-17 AS builder
+
+WORKDIR /build
+
+COPY ./javav2/example_code/cloudwatch/ .
+
+RUN mvn package -Dmaven.test.skip -q
+
+# ---- Runtime ----
+FROM eclipse-temurin:17-jre-jammy
+
+WORKDIR /app
+
+COPY --from=builder /build/target/*.jar app.jar
+
+EXPOSE 8080
+
+ENTRYPOINT ["java", "-jar", "app.jar"]

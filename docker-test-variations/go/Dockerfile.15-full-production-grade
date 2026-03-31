@@ -1,0 +1,39 @@
+# syntax=docker/dockerfile:1
+# Variation 15: Full production-grade (all best-practices)
+# Complexity: HIGHEST
+# Distroless runtime, non-root, HEALTHCHECK, BuildKit caches,
+# cross-compile flags, LABEL OCI metadata, stripped binary.
+
+FROM golang:1.21 AS builder
+
+RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /build
+
+COPY ./gov2/ .
+
+RUN --mount=type=cache,target=/go/pkg/mod \
+    --mount=type=cache,target=/root/.cache/go-build \
+    cd dynamodb && \
+    CGO_ENABLED=0 GOOS=linux GOARCH=amd64 \
+    go build -a -trimpath -ldflags="-s -w -extldflags '-static'" \
+    -o /dynamodb-prod ./...
+
+# ---- Distroless runtime (has non-root user 65532 built-in) ----
+FROM gcr.io/distroless/static-debian12:nonroot
+
+COPY --from=builder /dynamodb-prod /dynamodb-prod
+COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
+
+EXPOSE 8080
+
+HEALTHCHECK --interval=30s --timeout=10s --start-period=10s --retries=3 \
+    CMD ["/dynamodb-prod", "--health-check"]
+
+LABEL org.opencontainers.image.title="gov2-aws-sdk-examples-prod" \
+      org.opencontainers.image.version="1.21" \
+      org.opencontainers.image.source="https://github.com/awsdocs/aws-doc-sdk-examples" \
+      org.opencontainers.image.licenses="Apache-2.0"
+
+ENTRYPOINT ["/dynamodb-prod"]

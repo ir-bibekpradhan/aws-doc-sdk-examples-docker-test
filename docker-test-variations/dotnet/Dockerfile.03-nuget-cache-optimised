@@ -1,0 +1,21 @@
+# syntax=docker/dockerfile:1
+# Variation 03: NuGet cache layer optimisation
+# Complexity: MEDIUM
+# Restores NuGet packages before copying full source so the
+# package layer is only invalidated when .csproj changes.
+
+FROM mcr.microsoft.com/dotnet/sdk:8.0
+
+WORKDIR /dotnetv3
+
+# Copy project file first for cache
+COPY ./dotnetv3/SES/*.csproj ./SES/
+
+RUN cd SES && dotnet restore
+
+# Copy remaining source
+COPY ./dotnetv3/SES/ ./SES/
+
+RUN cd SES && dotnet build -c Release
+
+CMD ["bash"]

@@ -1,0 +1,28 @@
+# syntax=docker/dockerfile:1
+# Variation 11: CI Runner (Python + AWS CLI)
+# Complexity: MEDIUM-HIGH
+# Bundles AWS CLI v2 so pipelines can deploy immediately after tests.
+
+FROM python:3.11-slim
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        curl unzip git jq ca-certificates gcc libffi-dev \
+    && curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o /tmp/awscliv2.zip \
+    && unzip /tmp/awscliv2.zip -d /tmp \
+    && /tmp/aws/install \
+    && rm -rf /tmp/awscliv2.zip /tmp/aws \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /python
+
+COPY ./python/example_code/dynamodb/requirements.txt ./requirements.txt
+
+RUN pip install --no-cache-dir -r requirements.txt
+
+COPY ./python/ .
+
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    AWS_DEFAULT_REGION=us-east-1
+
+CMD ["bash"]

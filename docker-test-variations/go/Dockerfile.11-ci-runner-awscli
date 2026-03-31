@@ -1,0 +1,25 @@
+# syntax=docker/dockerfile:1
+# Variation 11: CI Runner (Go + AWS CLI)
+# Complexity: MEDIUM-HIGH
+
+FROM golang:1.21
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        curl unzip git jq ca-certificates \
+    && curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o /tmp/awscliv2.zip \
+    && unzip /tmp/awscliv2.zip -d /tmp \
+    && /tmp/aws/install \
+    && rm -rf /tmp/awscliv2.zip /tmp/aws \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /gov2
+
+COPY ./gov2/ .
+
+RUN --mount=type=cache,target=/go/pkg/mod \
+    --mount=type=cache,target=/root/.cache/go-build \
+    cd dynamodb && go build ./...
+
+ENV AWS_DEFAULT_REGION=us-east-1
+
+CMD ["bash"]

@@ -1,0 +1,18 @@
+# syntax=docker/dockerfile:1
+# Variation 05: ARG / ENV multi-environment
+# Complexity: LOW-MEDIUM
+# Build-time ARG selects Debug vs Release configuration.
+
+FROM mcr.microsoft.com/dotnet/sdk:8.0
+
+ARG BUILD_CONFIG=Release
+ENV ASPNETCORE_ENVIRONMENT=Production \
+    DOTNET_CLI_TELEMETRY_OPTOUT=1
+
+WORKDIR /dotnetv3
+
+COPY ./dotnetv3/SES/ ./SES/
+
+RUN cd SES && dotnet restore && dotnet build -c ${BUILD_CONFIG}
+
+CMD ["bash"]

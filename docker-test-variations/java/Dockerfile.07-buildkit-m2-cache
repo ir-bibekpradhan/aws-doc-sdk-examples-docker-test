@@ -1,0 +1,15 @@
+# syntax=docker/dockerfile:1
+# Variation 07: BuildKit Maven local-repo cache mount
+# Complexity: MEDIUM-HIGH
+# Maven local repo persists across builds on the same host.
+
+FROM maven:3.9-eclipse-temurin-17
+
+WORKDIR /javav2/example_code/cloudwatch
+
+COPY ./javav2/example_code/cloudwatch/ .
+
+RUN --mount=type=cache,target=/root/.m2/repository \
+    mvn package -Dmaven.test.skip
+
+CMD ["bash"]

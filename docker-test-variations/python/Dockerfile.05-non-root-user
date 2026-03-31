@@ -1,0 +1,24 @@
+# syntax=docker/dockerfile:1
+# Variation 05: Non-root user (production security)
+# Complexity: MEDIUM
+# Drops privileges to a dedicated non-root user before CMD.
+
+FROM python:3.11-slim
+
+RUN groupadd -r pygroup && useradd -r -g pygroup -m pyuser
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        gcc libffi-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /python
+
+COPY --chown=pyuser:pygroup ./python/example_code/dynamodb/requirements.txt ./requirements.txt
+
+RUN pip install --no-cache-dir -r requirements.txt
+
+COPY --chown=pyuser:pygroup ./python/ .
+
+USER pyuser
+
+CMD ["bash"]

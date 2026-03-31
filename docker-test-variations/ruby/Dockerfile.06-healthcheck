@@ -1,0 +1,26 @@
+# syntax=docker/dockerfile:1
+# Variation 06: HEALTHCHECK included
+# Complexity: MEDIUM
+# Starts a minimal Rack/Sinatra app inside the container and uses
+# curl to health-check it on port 4567.
+
+FROM ruby:3.1.2-buster
+
+RUN apt-get update && apt-get install -y --no-install-recommends curl \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /ruby
+
+COPY ./ruby/Gemfile ./ruby/Gemfile.lock ./
+
+RUN bundle config --delete frozen && \
+    bundle install
+
+COPY ./ruby/ .
+
+EXPOSE 4567
+
+HEALTHCHECK --interval=30s --timeout=10s --start-period=10s --retries=3 \
+    CMD curl -f http://localhost:4567/ || exit 1
+
+CMD ["bash"]

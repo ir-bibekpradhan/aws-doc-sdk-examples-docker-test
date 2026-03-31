@@ -1,0 +1,29 @@
+# syntax=docker/dockerfile:1
+# Variation 14: Read-only filesystem + tmpfs volume
+# Complexity: HIGH
+# Production hardening: root FS is read-only; only /tmp is writable.
+# Run with: docker run --read-only --tmpfs /tmp:rw,size=64m ...
+
+FROM python:3.11-slim
+
+RUN groupadd -r pygroup && useradd -r -g pygroup -m pyuser \
+    && apt-get update && apt-get install -y --no-install-recommends gcc libffi-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /python
+
+COPY --chown=pyuser:pygroup ./python/example_code/dynamodb/requirements.txt ./requirements.txt
+
+RUN pip install --no-cache-dir -r requirements.txt
+
+COPY --chown=pyuser:pygroup ./python/ .
+
+USER pyuser
+
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    TMPDIR=/tmp
+
+VOLUME ["/tmp"]
+
+CMD ["bash"]

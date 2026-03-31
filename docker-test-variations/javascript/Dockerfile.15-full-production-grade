@@ -1,0 +1,47 @@
+# syntax=docker/dockerfile:1
+# Variation 15: Full production-grade (all best-practices)
+# Complexity: HIGHEST
+# Multi-stage, Alpine runtime, non-root, HEALTHCHECK, BuildKit cache,
+# LABEL metadata, hardened ENV, minimal attack surface.
+
+# ======= Stage 1: Install deps =======
+FROM node:18-alpine3.18 AS deps
+
+RUN apk add --no-cache python3 make g++
+
+WORKDIR /build
+
+COPY ./javascriptv3/package*.json ./
+
+RUN --mount=type=cache,target=/root/.npm \
+    npm ci --omit=dev
+
+# ======= Stage 2: Final runtime =======
+FROM node:18-alpine3.18 AS final
+
+RUN apk add --no-cache curl \
+    && addgroup -S nodegroup \
+    && adduser -S -G nodegroup nodeuser
+
+WORKDIR /javascriptv3
+
+COPY --from=deps --chown=nodeuser:nodegroup /build/node_modules ./node_modules
+COPY --chown=nodeuser:nodegroup ./javascriptv3/ .
+
+USER nodeuser
+
+ENV NODE_ENV=production \
+    NODE_OPTIONS="--max-old-space-size=256" \
+    NPM_CONFIG_UPDATE_NOTIFIER=false
+
+EXPOSE 3000
+
+HEALTHCHECK --interval=30s --timeout=10s --start-period=10s --retries=3 \
+    CMD node -e "require('http').get('http://localhost:3000/', r => process.exit(r.statusCode===200?0:1)).on('error',()=>process.exit(1))" || exit 1
+
+LABEL org.opencontainers.image.title="javascriptv3-aws-sdk-examples-prod" \
+      org.opencontainers.image.version="18" \
+      org.opencontainers.image.source="https://github.com/awsdocs/aws-doc-sdk-examples" \
+      org.opencontainers.image.licenses="Apache-2.0"
+
+CMD ["bash"]

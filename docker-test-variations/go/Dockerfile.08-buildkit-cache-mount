@@ -1,0 +1,16 @@
+# syntax=docker/dockerfile:1
+# Variation 08: BuildKit cache mount for Go module cache
+# Complexity: MEDIUM-HIGH
+# Caches $GOPATH/pkg/mod across builds, drastically cutting download time.
+
+FROM golang:1.21
+
+WORKDIR /gov2
+
+COPY ./gov2/ .
+
+RUN --mount=type=cache,target=/go/pkg/mod \
+    --mount=type=cache,target=/root/.cache/go-build \
+    cd dynamodb && go build ./...
+
+CMD ["bash"]

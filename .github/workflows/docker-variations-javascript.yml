@@ -1,0 +1,54 @@
+name: Docker Variation Tests - JavaScript v3
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build_javascript_variations:
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - variation: "01-simple-single-stage"
+            complexity: "LOW"
+          - variation: "02-alpine-minimal"
+            complexity: "LOW-MEDIUM"
+          - variation: "03-dev-hot-reload"
+            complexity: "LOW"
+          - variation: "04-multi-stage"
+            complexity: "MEDIUM"
+          - variation: "05-non-root-user"
+            complexity: "MEDIUM"
+          - variation: "06-arg-env-config"
+            complexity: "LOW-MEDIUM"
+          - variation: "07-healthcheck"
+            complexity: "MEDIUM"
+          - variation: "08-layer-cache-optimised"
+            complexity: "LOW-MEDIUM"
+          - variation: "09-buildkit-cache-mount"
+            complexity: "MEDIUM-HIGH"
+          - variation: "10-monorepo-lerna"
+            complexity: "HIGH"
+          - variation: "11-ci-runner-awscli"
+            complexity: "MEDIUM-HIGH"
+          - variation: "12-multi-stage-nonroot-healthcheck"
+            complexity: "HIGH"
+          - variation: "13-typescript-build"
+            complexity: "HIGH"
+          - variation: "14-readonly-filesystem"
+            complexity: "HIGH"
+          - variation: "15-full-production-grade"
+            complexity: "HIGHEST"
+
+    steps:
+      - name: Check out the repo
+        uses: actions/checkout@v3
+
+      - name: "Build JavaScript Dockerfile.${{ matrix.variation }} [complexity=${{ matrix.complexity }}]"
+        run: |
+          docker build \
+            -t javascript-variation-${{ matrix.variation }} \
+            -f ./docker-test-variations/javascript/Dockerfile.${{ matrix.variation }} \
+            .

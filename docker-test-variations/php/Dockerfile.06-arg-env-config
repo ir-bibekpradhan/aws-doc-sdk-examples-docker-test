@@ -1,0 +1,23 @@
+# syntax=docker/dockerfile:1
+# Variation 06: ARG / ENV multi-environment
+# Complexity: LOW-MEDIUM
+
+FROM composer/composer:latest
+
+ARG PHP_ENV=production
+ARG SERVICE=glue
+ENV PHP_ENV=${PHP_ENV} \
+    COMPOSER_ALLOW_SUPERUSER=1
+
+WORKDIR /php
+
+COPY ./php/ .
+
+RUN cd example_code/${SERVICE} && \
+    if [ "$PHP_ENV" = "production" ]; then \
+        composer install --no-dev --optimize-autoloader; \
+    else \
+        composer install; \
+    fi
+
+CMD ["bash"]

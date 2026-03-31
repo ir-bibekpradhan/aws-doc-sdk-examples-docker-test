@@ -1,0 +1,19 @@
+# syntax=docker/dockerfile:1
+# Variation 09: BuildKit cache mount for npm
+# Complexity: MEDIUM-HIGH
+# npm cache persists on the build host across rebuilds.
+
+FROM node:18-slim
+
+WORKDIR /javascriptv3
+
+COPY ./javascriptv3/package*.json ./
+
+RUN --mount=type=cache,target=/root/.npm \
+    npm ci --omit=dev
+
+COPY ./javascriptv3/ .
+
+ENV NODE_ENV=production
+
+CMD ["bash"]

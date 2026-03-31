@@ -1,0 +1,20 @@
+# syntax=docker/dockerfile:1
+# Variation 10: Cross-compilation (linux/arm64)
+# Complexity: MEDIUM-HIGH
+# Builds a binary for ARM64 even when running on AMD64 CI.
+
+FROM golang:1.21 AS builder
+
+WORKDIR /build
+
+COPY ./gov2/ .
+
+RUN cd dynamodb && \
+    GOOS=linux GOARCH=arm64 CGO_ENABLED=0 \
+    go build -ldflags="-s -w" -o /dynamodb-arm64 ./...
+
+FROM alpine:3.18
+
+COPY --from=builder /dynamodb-arm64 /dynamodb-arm64
+
+CMD ["/dynamodb-arm64"]

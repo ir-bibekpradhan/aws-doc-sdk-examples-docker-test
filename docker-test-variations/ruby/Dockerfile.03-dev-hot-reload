@@ -1,0 +1,25 @@
+# syntax=docker/dockerfile:1
+# Variation 03: Development Image with bind-mount friendly layout
+# Complexity: LOW
+# Designed for local development; installs gems globally so a mounted
+# volume at /ruby sees them immediately.
+
+FROM ruby:3.1.2-buster
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        git \
+        curl \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /ruby
+
+COPY ./ruby/Gemfile ./ruby/Gemfile.lock ./
+
+RUN bundle config --delete frozen && \
+    bundle install
+
+COPY ./ruby/ .
+
+EXPOSE 4567
+
+CMD ["bash"]

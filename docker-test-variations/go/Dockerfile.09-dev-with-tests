@@ -1,0 +1,20 @@
+# syntax=docker/dockerfile:1
+# Variation 09: Dev image with race detector + test tools
+# Complexity: MEDIUM
+
+FROM golang:1.21
+
+RUN go install github.com/go-delve/delve/cmd/dlv@latest
+
+WORKDIR /gov2
+
+COPY ./gov2/ .
+
+RUN --mount=type=cache,target=/go/pkg/mod \
+    --mount=type=cache,target=/root/.cache/go-build \
+    cd dynamodb && go test -race ./... 2>/dev/null || true
+
+ENV CGO_ENABLED=1 \
+    GOFLAGS="-race"
+
+CMD ["bash"]

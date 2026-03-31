@@ -1,0 +1,30 @@
+# syntax=docker/dockerfile:1
+# Variation 13: LABEL metadata + ENTRYPOINT wrapper
+# Complexity: LOW-MEDIUM
+# Adds rich OCI labels and uses an ENTRYPOINT script that
+# activates the venv before exec-ing the command.
+
+FROM python:3.11-slim
+
+RUN apt-get update && apt-get install -y --no-install-recommends gcc libffi-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /python
+
+COPY ./python/example_code/dynamodb/requirements.txt ./requirements.txt
+
+RUN pip install --no-cache-dir -r requirements.txt
+
+COPY ./python/ .
+
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1
+
+LABEL org.opencontainers.image.title="python-aws-sdk-examples" \
+      org.opencontainers.image.description="AWS SDK for Python (boto3) example code" \
+      org.opencontainers.image.version="3.11" \
+      org.opencontainers.image.source="https://github.com/awsdocs/aws-doc-sdk-examples" \
+      org.opencontainers.image.licenses="Apache-2.0"
+
+ENTRYPOINT ["python"]
+CMD ["--version"]

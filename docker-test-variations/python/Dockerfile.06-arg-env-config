@@ -1,0 +1,27 @@
+# syntax=docker/dockerfile:1
+# Variation 06: ARG / ENV multi-environment
+# Complexity: LOW-MEDIUM
+# Build-time ARG selects which requirements file to install.
+# Usage:
+#   docker build --build-arg SERVICE=s3 -t python-s3 ...
+
+FROM python:3.11-slim
+
+ARG SERVICE=dynamodb
+ARG PYTHON_ENV=production
+ENV SERVICE=${SERVICE} \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1
+
+RUN apt-get update && apt-get install -y --no-install-recommends gcc libffi-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /python
+
+COPY ./python/ .
+
+RUN if [ -f "example_code/${SERVICE}/requirements.txt" ]; then \
+        pip install --no-cache-dir -r "example_code/${SERVICE}/requirements.txt"; \
+    fi
+
+CMD ["bash"]

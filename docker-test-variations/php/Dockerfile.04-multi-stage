@@ -1,0 +1,23 @@
+# syntax=docker/dockerfile:1
+# Variation 04: Multi-Stage Build (Composer install + PHP runtime)
+# Complexity: MEDIUM
+
+FROM composer:2 AS deps
+
+WORKDIR /build
+
+COPY ./php/example_code/glue/composer.json ./php/example_code/glue/composer.lock* ./
+
+RUN composer install --no-dev --optimize-autoloader --no-interaction
+
+# ---- Runtime ----
+FROM php:8.2-cli-alpine3.18
+
+RUN apk add --no-cache libzip-dev && docker-php-ext-install zip
+
+WORKDIR /php
+
+COPY --from=deps /build/vendor ./example_code/glue/vendor
+COPY ./php/ .
+
+CMD ["bash"]

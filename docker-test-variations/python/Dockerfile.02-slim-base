@@ -1,0 +1,21 @@
+# syntax=docker/dockerfile:1
+# Variation 02: Slim base image
+# Complexity: LOW
+# Uses python:3.11-slim to reduce image size vs the full python image.
+
+FROM python:3.11-slim
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        gcc \
+        libffi-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /python
+
+COPY ./python/example_code/dynamodb/requirements.txt ./requirements.txt
+
+RUN pip install --no-cache-dir -r requirements.txt
+
+COPY ./python/ .
+
+CMD ["bash"]

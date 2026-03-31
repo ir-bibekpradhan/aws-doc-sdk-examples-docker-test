@@ -1,0 +1,20 @@
+# syntax=docker/dockerfile:1
+# Variation 04: Distroless runtime
+# Complexity: HIGH
+# Uses gcr.io/distroless for maximum security — no shell, no package manager.
+
+FROM golang:1.21 AS builder
+
+WORKDIR /build
+
+COPY ./gov2/ .
+
+RUN cd dynamodb && \
+    CGO_ENABLED=0 GOOS=linux go build -ldflags="-s -w" -o /dynamodb-app ./...
+
+# ---- Distroless ----
+FROM gcr.io/distroless/static-debian12
+
+COPY --from=builder /dynamodb-app /dynamodb-app
+
+ENTRYPOINT ["/dynamodb-app"]

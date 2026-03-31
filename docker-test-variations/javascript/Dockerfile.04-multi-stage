@@ -1,0 +1,26 @@
+# syntax=docker/dockerfile:1
+# Variation 04: Multi-Stage Build (build + slim runtime)
+# Complexity: MEDIUM
+# Build stage runs npm ci; runtime stage copies node_modules + source.
+
+FROM node:18 AS builder
+
+WORKDIR /build
+
+COPY ./javascriptv3/package*.json ./
+
+RUN npm ci
+
+COPY ./javascriptv3/ .
+
+# ---- Runtime ----
+FROM node:18-slim AS runtime
+
+WORKDIR /javascriptv3
+
+COPY --from=builder /build/node_modules ./node_modules
+COPY --from=builder /build/ .
+
+ENV NODE_ENV=production
+
+CMD ["bash"]

@@ -1,0 +1,20 @@
+# syntax=docker/dockerfile:1
+# Variation 13: Pinned Go toolchain version
+# Complexity: LOW-MEDIUM
+# Pins the exact Go patch release for reproducible builds.
+
+FROM golang:1.21.6-bullseye
+
+WORKDIR /gov2
+
+COPY ./gov2/ .
+
+RUN --mount=type=cache,target=/go/pkg/mod \
+    --mount=type=cache,target=/root/.cache/go-build \
+    cd dynamodb && go build ./...
+
+LABEL org.opencontainers.image.title="gov2-aws-sdk-examples" \
+      org.opencontainers.image.version="1.21.6" \
+      org.opencontainers.image.licenses="Apache-2.0"
+
+CMD ["bash"]

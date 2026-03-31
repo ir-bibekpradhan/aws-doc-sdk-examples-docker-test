@@ -1,0 +1,17 @@
+# syntax=docker/dockerfile:1
+# Variation 05: ARG / ENV multi-environment
+# Complexity: LOW-MEDIUM
+
+FROM maven:3.9-eclipse-temurin-17
+
+ARG MAVEN_PROFILE=default
+ARG SERVICE=cloudwatch
+ENV SERVICE=${SERVICE}
+
+WORKDIR /javav2
+
+COPY ./javav2/ .
+
+RUN cd example_code/${SERVICE} && mvn package -Dmaven.test.skip -P${MAVEN_PROFILE}
+
+CMD ["bash"]

@@ -1,0 +1,27 @@
+# syntax=docker/dockerfile:1
+# Variation 04: Production-Hardened — non-root user
+# Complexity: MEDIUM
+# Creates a dedicated non-root system user and group,
+# installs gems under that user's home, and drops privileges.
+
+FROM ruby:3.1.2-slim-buster
+
+RUN groupadd -r rubygroup && useradd -r -g rubygroup -m -d /home/rubyuser rubyuser
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        build-essential \
+        libssl-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /ruby
+
+COPY --chown=rubyuser:rubygroup ./ruby/Gemfile ./ruby/Gemfile.lock ./
+
+RUN bundle config --delete frozen && \
+    bundle install
+
+COPY --chown=rubyuser:rubygroup ./ruby/ .
+
+USER rubyuser
+
+CMD ["bash"]

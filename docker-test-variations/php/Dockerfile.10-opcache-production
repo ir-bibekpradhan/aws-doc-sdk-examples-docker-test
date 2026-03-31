@@ -1,0 +1,30 @@
+# syntax=docker/dockerfile:1
+# Variation 10: OPcache enabled (production performance)
+# Complexity: MEDIUM
+
+FROM php:8.2-fpm-alpine3.18
+
+RUN apk add --no-cache libzip-dev zip unzip \
+    && docker-php-ext-install zip opcache
+
+COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
+
+# OPcache config
+RUN echo "opcache.enable=1" >> /usr/local/etc/php/conf.d/opcache.ini && \
+    echo "opcache.memory_consumption=128" >> /usr/local/etc/php/conf.d/opcache.ini && \
+    echo "opcache.interned_strings_buffer=8" >> /usr/local/etc/php/conf.d/opcache.ini && \
+    echo "opcache.max_accelerated_files=4000" >> /usr/local/etc/php/conf.d/opcache.ini && \
+    echo "opcache.revalidate_freq=60" >> /usr/local/etc/php/conf.d/opcache.ini && \
+    echo "opcache.fast_shutdown=1" >> /usr/local/etc/php/conf.d/opcache.ini
+
+WORKDIR /php
+
+COPY ./php/example_code/glue/composer.json ./example_code/glue/
+
+RUN --mount=type=cache,target=/root/.composer/cache \
+    cd example_code/glue && \
+    COMPOSER_ALLOW_SUPERUSER=1 composer install --no-dev --optimize-autoloader --classmap-authoritative
+
+COPY ./php/ .
+
+CMD ["php-fpm"]

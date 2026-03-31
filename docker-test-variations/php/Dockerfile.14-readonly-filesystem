@@ -1,0 +1,31 @@
+# syntax=docker/dockerfile:1
+# Variation 14: Read-only filesystem + tmpfs
+# Complexity: HIGH
+
+FROM composer:2 AS deps
+
+WORKDIR /build
+
+COPY ./php/example_code/glue/composer.json ./
+
+RUN COMPOSER_ALLOW_SUPERUSER=1 composer install --no-dev --optimize-autoloader
+
+FROM php:8.2-cli-alpine3.18
+
+RUN apk add --no-cache libzip-dev zip unzip \
+    && docker-php-ext-install zip \
+    && addgroup -S phpgroup \
+    && adduser -S -G phpgroup phpuser
+
+WORKDIR /php
+
+COPY --from=deps --chown=phpuser:phpgroup /build/vendor ./example_code/glue/vendor
+COPY --chown=phpuser:phpgroup ./php/ .
+
+USER phpuser
+
+ENV PHP_INI_SCAN_DIR=/tmp/php-ini
+
+VOLUME ["/tmp"]
+
+CMD ["bash"]

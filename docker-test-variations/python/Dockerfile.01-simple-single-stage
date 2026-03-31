@@ -1,0 +1,14 @@
+# syntax=docker/dockerfile:1
+# Variation 01: Simple Single-Stage
+# Complexity: LOW
+# Installs requirements from the dynamodb example and drops to bash.
+
+FROM python:3.11
+
+WORKDIR /python
+
+COPY ./python/ .
+
+RUN pip install --no-cache-dir -r example_code/dynamodb/requirements.txt
+
+CMD ["bash"]

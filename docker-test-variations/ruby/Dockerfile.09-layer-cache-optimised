@@ -1,0 +1,24 @@
+# syntax=docker/dockerfile:1
+# Variation 09: Layer-cache optimisation
+# Complexity: MEDIUM
+# Splits COPY into Gemfile first, then source code.
+# Re-installing gems only happens when Gemfile/Gemfile.lock change.
+
+FROM ruby:3.1.2-buster
+
+WORKDIR /ruby
+
+# --- Layer 1: dependency metadata only (changes rarely) ---
+COPY ./ruby/Gemfile ./ruby/Gemfile.lock ./
+
+RUN bundle config --delete frozen && \
+    bundle install --jobs 4 --retry 3
+
+# --- Layer 2: application source (changes often) ---
+COPY ./ruby/ .
+
+LABEL org.opencontainers.image.title="ruby-aws-sdk-examples" \
+      org.opencontainers.image.version="3.1.2" \
+      org.opencontainers.image.description="Ruby AWS SDK example code"
+
+CMD ["bash"]

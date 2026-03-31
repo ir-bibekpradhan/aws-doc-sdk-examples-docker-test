@@ -1,0 +1,30 @@
+# syntax=docker/dockerfile:1
+# Variation 07: Self-contained single-file publish
+# Complexity: HIGH
+# Produces a single self-contained executable — no runtime needed.
+
+FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
+
+WORKDIR /src
+
+COPY ./dotnetv3/SES/ ./SES/
+
+RUN cd SES && \
+    dotnet restore && \
+    dotnet publish -c Release \
+        --self-contained true \
+        -r linux-x64 \
+        -p:PublishSingleFile=true \
+        -p:EnableCompressionInSingleFile=true \
+        -o /app/publish
+
+# ---- Minimal runtime (just glibc) ----
+FROM mcr.microsoft.com/dotnet/runtime-deps:8.0
+
+WORKDIR /app
+
+COPY --from=build /app/publish .
+
+EXPOSE 80
+
+CMD ["./SESV2_Lambda_Example"]

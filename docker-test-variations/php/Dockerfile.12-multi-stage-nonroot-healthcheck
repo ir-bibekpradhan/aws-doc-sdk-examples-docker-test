@@ -1,0 +1,32 @@
+# syntax=docker/dockerfile:1
+# Variation 12: Multi-stage + non-root + HEALTHCHECK
+# Complexity: HIGH
+
+FROM composer:2 AS deps
+
+WORKDIR /build
+
+COPY ./php/example_code/glue/composer.json ./
+
+RUN COMPOSER_ALLOW_SUPERUSER=1 composer install --no-dev --optimize-autoloader --no-interaction
+
+FROM php:8.2-cli-alpine3.18 AS runtime
+
+RUN apk add --no-cache libzip-dev zip unzip curl \
+    && docker-php-ext-install zip \
+    && addgroup -S phpgroup \
+    && adduser -S -G phpgroup phpuser
+
+WORKDIR /php
+
+COPY --from=deps --chown=phpuser:phpgroup /build/vendor ./example_code/glue/vendor
+COPY --chown=phpuser:phpgroup ./php/ .
+
+USER phpuser
+
+EXPOSE 8080
+
+HEALTHCHECK --interval=30s --timeout=10s --start-period=10s --retries=3 \
+    CMD php -r "echo 'OK';" || exit 1
+
+CMD ["php", "-S", "0.0.0.0:8080", "-t", "/php"]

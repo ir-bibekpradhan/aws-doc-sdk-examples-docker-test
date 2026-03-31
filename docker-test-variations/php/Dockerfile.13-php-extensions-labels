@@ -1,0 +1,30 @@
+# syntax=docker/dockerfile:1
+# Variation 13: PHP extensions + LABEL metadata
+# Complexity: MEDIUM
+
+FROM php:8.2-cli-alpine3.18
+
+RUN apk add --no-cache \
+        libzip-dev zip unzip \
+        icu-dev \
+        oniguruma-dev \
+    && docker-php-ext-install zip intl mbstring
+
+COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
+
+WORKDIR /php
+
+COPY ./php/example_code/glue/composer.json ./example_code/glue/
+
+RUN --mount=type=cache,target=/root/.composer/cache \
+    cd example_code/glue && \
+    COMPOSER_ALLOW_SUPERUSER=1 composer install --no-dev --optimize-autoloader
+
+COPY ./php/ .
+
+LABEL org.opencontainers.image.title="php-aws-sdk-examples" \
+      org.opencontainers.image.version="8.2" \
+      org.opencontainers.image.source="https://github.com/awsdocs/aws-doc-sdk-examples" \
+      org.opencontainers.image.licenses="Apache-2.0"
+
+CMD ["bash"]

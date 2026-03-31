@@ -1,0 +1,37 @@
+# syntax=docker/dockerfile:1
+# Variation 14: Read-only filesystem + JVM tuning
+# Complexity: HIGH
+
+FROM maven:3.9-eclipse-temurin-17 AS builder
+
+WORKDIR /build
+
+COPY ./javav2/example_code/cloudwatch/ .
+
+RUN mvn package -Dmaven.test.skip -q
+
+# ---- Runtime ----
+FROM eclipse-temurin:17-jre-jammy
+
+RUN groupadd -r javagroup && useradd -r -g javagroup -m javauser \
+    && apt-get update && apt-get install -y --no-install-recommends curl \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+
+COPY --from=builder --chown=javauser:javagroup /build/target/*.jar app.jar
+
+USER javauser
+
+# Container GC and memory tuning for containerised environments
+ENV JAVA_OPTS="-XX:+UseContainerSupport \
+               -XX:MaxRAMPercentage=75.0 \
+               -XX:+UseG1GC \
+               -XX:+OptimizeStringConcat \
+               -Djava.security.egd=file:/dev/./urandom"
+
+EXPOSE 8080
+
+VOLUME ["/tmp"]
+
+ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -jar app.jar"]

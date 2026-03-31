@@ -1,0 +1,17 @@
+# syntax=docker/dockerfile:1
+# Variation 02: Alpine-based minimal
+# Complexity: LOW-MEDIUM
+
+FROM node:18-alpine3.18
+
+RUN apk add --no-cache git python3 make g++
+
+WORKDIR /javascriptv3
+
+COPY ./javascriptv3/package*.json ./
+
+RUN npm ci --omit=dev
+
+COPY ./javascriptv3/ .
+
+CMD ["bash"]

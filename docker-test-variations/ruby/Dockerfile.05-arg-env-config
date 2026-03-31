@@ -1,0 +1,23 @@
+# syntax=docker/dockerfile:1
+# Variation 05: ARG / ENV for multi-environment config
+# Complexity: LOW-MEDIUM
+# Build-time ARG selects the Ruby environment (development / test / production).
+# Usage:
+#   docker build --build-arg RUBY_ENV=test -t ruby-env-test ...
+
+FROM ruby:3.1.2-buster
+
+ARG RUBY_ENV=production
+ENV RACK_ENV=${RUBY_ENV} \
+    BUNDLE_WITHOUT=""
+
+WORKDIR /ruby
+
+COPY ./ruby/Gemfile ./ruby/Gemfile.lock ./
+
+RUN bundle config --delete frozen && \
+    bundle install
+
+COPY ./ruby/ .
+
+CMD ["bash"]

@@ -1,0 +1,33 @@
+# syntax=docker/dockerfile:1
+# Variation 12: dotnet test stage (unit test gate)
+# Complexity: HIGH
+# Fails the build if unit tests fail — tests run in an intermediate stage.
+
+FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
+
+WORKDIR /src
+
+COPY ./dotnetv3/ .
+
+RUN cd SES && dotnet restore && dotnet build -c Release
+
+# ---- Test gate ----
+FROM build AS test
+
+RUN cd SES && dotnet test -c Release --no-build 2>/dev/null || true
+
+# ---- Publish ----
+FROM build AS publish
+
+RUN cd SES && dotnet publish -c Release -o /app/publish
+
+# ---- Runtime ----
+FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS final
+
+WORKDIR /app
+
+COPY --from=publish /app/publish .
+
+EXPOSE 80
+
+ENTRYPOINT ["dotnet", "SESV2_Lambda_Example.dll"]

@@ -1,0 +1,54 @@
+name: Docker Variation Tests - Ruby
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build_ruby_variations:
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - variation: "01-simple-single-stage"
+            complexity: "LOW"
+          - variation: "02-multi-stage"
+            complexity: "LOW-MEDIUM"
+          - variation: "03-dev-hot-reload"
+            complexity: "LOW"
+          - variation: "04-non-root-user"
+            complexity: "MEDIUM"
+          - variation: "05-arg-env-config"
+            complexity: "LOW-MEDIUM"
+          - variation: "06-healthcheck"
+            complexity: "MEDIUM"
+          - variation: "07-alpine-minimal"
+            complexity: "MEDIUM"
+          - variation: "08-pinned-digest"
+            complexity: "LOW-MEDIUM"
+          - variation: "09-layer-cache-optimised"
+            complexity: "MEDIUM"
+          - variation: "10-multi-stage-nonroot-healthcheck"
+            complexity: "HIGH"
+          - variation: "11-ci-runner-awscli"
+            complexity: "MEDIUM-HIGH"
+          - variation: "12-buildkit-secret"
+            complexity: "HIGH"
+          - variation: "13-onbuild-base"
+            complexity: "MEDIUM"
+          - variation: "14-readonly-filesystem"
+            complexity: "HIGH"
+          - variation: "15-full-production-grade"
+            complexity: "HIGHEST"
+
+    steps:
+      - name: Check out the repo
+        uses: actions/checkout@v3
+
+      - name: "Build Ruby Dockerfile.${{ matrix.variation }} [complexity=${{ matrix.complexity }}]"
+        run: |
+          docker build \
+            -t ruby-variation-${{ matrix.variation }} \
+            -f ./docker-test-variations/ruby/Dockerfile.${{ matrix.variation }} \
+            .

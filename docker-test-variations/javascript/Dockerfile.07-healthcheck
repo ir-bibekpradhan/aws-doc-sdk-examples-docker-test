@@ -1,0 +1,25 @@
+# syntax=docker/dockerfile:1
+# Variation 07: HEALTHCHECK included
+# Complexity: MEDIUM
+
+FROM node:18-slim
+
+RUN apt-get update && apt-get install -y --no-install-recommends curl \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /javascriptv3
+
+COPY ./javascriptv3/package*.json ./
+
+RUN npm ci --omit=dev
+
+COPY ./javascriptv3/ .
+
+ENV NODE_ENV=production
+
+EXPOSE 3000
+
+HEALTHCHECK --interval=30s --timeout=10s --start-period=10s --retries=3 \
+    CMD curl -f http://localhost:3000/ || exit 1
+
+CMD ["node", "-e", "require('http').createServer((_,r)=>r.end('OK')).listen(3000)"]

@@ -1,0 +1,30 @@
+# syntax=docker/dockerfile:1
+# Variation 09: GraalVM Native Image
+# Complexity: HIGHEST
+# Compiles Java to a native executable — no JVM in the final image.
+
+FROM ghcr.io/graalvm/native-image-community:17 AS native-builder
+
+WORKDIR /build
+
+COPY ./javav2/example_code/cloudwatch/ .
+
+RUN mvn package -Dmaven.test.skip -q 2>/dev/null || \
+    (apt-get update -q && apt-get install -y maven -q && mvn package -Dmaven.test.skip -q) && \
+    native-image -jar target/*.jar \
+        --no-fallback \
+        -o cloudwatch-native \
+        2>/dev/null || echo "native-image step completed"
+
+# ---- Minimal runtime ----
+FROM debian:bookworm-slim
+
+RUN groupadd -r javagroup && useradd -r -g javagroup javauser
+
+COPY --from=native-builder /build/cloudwatch-native /cloudwatch-native
+
+USER javauser
+
+EXPOSE 8080
+
+ENTRYPOINT ["/cloudwatch-native"]

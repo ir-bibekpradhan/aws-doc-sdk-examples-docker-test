@@ -1,0 +1,38 @@
+# syntax=docker/dockerfile:1
+# Variation 12: Multi-stage + venv + non-root (combined)
+# Complexity: HIGH
+
+# ======= Stage 1: Build venv =======
+FROM python:3.11-slim AS venv-builder
+
+RUN apt-get update && apt-get install -y --no-install-recommends gcc libffi-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+ENV VIRTUAL_ENV=/opt/venv
+RUN python -m venv $VIRTUAL_ENV
+ENV PATH="$VIRTUAL_ENV/bin:$PATH"
+
+COPY ./python/example_code/dynamodb/requirements.txt ./requirements.txt
+
+RUN pip install --no-cache-dir --upgrade pip && \
+    pip install --no-cache-dir -r requirements.txt
+
+# ======= Stage 2: Runtime =======
+FROM python:3.11-slim AS runtime
+
+RUN groupadd -r pygroup && useradd -r -g pygroup -m pyuser
+
+ENV VIRTUAL_ENV=/opt/venv
+ENV PATH="$VIRTUAL_ENV/bin:$PATH"
+
+COPY --from=venv-builder $VIRTUAL_ENV $VIRTUAL_ENV
+COPY --chown=pyuser:pygroup ./python/ /python/
+
+WORKDIR /python
+
+USER pyuser
+
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1
+
+CMD ["bash"]

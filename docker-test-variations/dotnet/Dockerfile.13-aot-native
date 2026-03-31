@@ -1,0 +1,34 @@
+# syntax=docker/dockerfile:1
+# Variation 13: AOT (Ahead-of-Time) native compilation
+# Complexity: HIGH
+# .NET 8 native AOT produces a truly native binary with no JIT overhead.
+
+FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        clang zlib1g-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /src
+
+COPY ./dotnetv3/SES/ ./SES/
+
+RUN cd SES && \
+    dotnet restore && \
+    dotnet publish -c Release \
+        -r linux-x64 \
+        --self-contained true \
+        -p:PublishAot=true \
+        -o /app/publish 2>/dev/null || \
+    dotnet publish -c Release -r linux-x64 --self-contained true -o /app/publish
+
+# ---- Minimal runtime-deps ----
+FROM mcr.microsoft.com/dotnet/runtime-deps:8.0
+
+WORKDIR /app
+
+COPY --from=build /app/publish .
+
+EXPOSE 80
+
+CMD ["./SESV2_Lambda_Example"]

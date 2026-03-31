@@ -1,0 +1,21 @@
+# syntax=docker/dockerfile:1
+# Variation 13: ONBUILD base image pattern
+# Complexity: MEDIUM
+# This image is intended as an internal base image.
+# Child Dockerfiles only need: FROM ruby-aws-base:latest
+# The ONBUILD instructions fire automatically in children.
+
+FROM ruby:3.1.2-buster
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        build-essential \
+        libssl-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /ruby
+
+ONBUILD COPY Gemfile Gemfile.lock ./
+ONBUILD RUN bundle config --delete frozen && bundle install --jobs 4
+ONBUILD COPY . .
+
+CMD ["bash"]

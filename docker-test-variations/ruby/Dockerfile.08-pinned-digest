@@ -1,0 +1,18 @@
+# syntax=docker/dockerfile:1
+# Variation 08: Pinned digest for reproducibility
+# Complexity: LOW-MEDIUM
+# Pins the base image to a specific SHA256 digest so builds are
+# 100% reproducible regardless of tag mutations.
+
+FROM ruby:3.1.2-buster@sha256:8b00b10c3d28a60f89d3f96430b1a0c25186c15e25cda5e2ed7a33a53e23f0e3
+
+WORKDIR /ruby
+
+COPY ./ruby/Gemfile ./ruby/Gemfile.lock ./
+
+RUN bundle config --delete frozen && \
+    bundle install
+
+COPY ./ruby/ .
+
+CMD ["bash"]

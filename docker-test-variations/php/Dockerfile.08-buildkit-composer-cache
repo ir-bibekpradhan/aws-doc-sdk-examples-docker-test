@@ -1,0 +1,21 @@
+# syntax=docker/dockerfile:1
+# Variation 08: Composer cache mount (BuildKit)
+# Complexity: MEDIUM-HIGH
+
+FROM php:8.2-cli-alpine3.18
+
+RUN apk add --no-cache libzip-dev zip unzip && docker-php-ext-install zip
+
+COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
+
+WORKDIR /php
+
+COPY ./php/example_code/glue/composer.json ./example_code/glue/
+
+RUN --mount=type=cache,target=/root/.composer/cache \
+    cd example_code/glue && \
+    COMPOSER_ALLOW_SUPERUSER=1 composer install --no-dev --optimize-autoloader
+
+COPY ./php/ .
+
+CMD ["bash"]

@@ -1,0 +1,24 @@
+# syntax=docker/dockerfile:1
+# Variation 10: Lerna / Monorepo selective workspace
+# Complexity: HIGH
+# Installs root deps, then bootstraps only the example_code workspace.
+
+FROM node:18
+
+WORKDIR /javascriptv3
+
+# Root manifest first (cache layer)
+COPY ./javascriptv3/package*.json ./
+COPY ./javascriptv3/lerna.json ./
+
+RUN npm install
+
+# Copy full source
+COPY ./javascriptv3/ .
+
+# Bootstrap all lerna packages
+RUN npx lerna bootstrap --ci 2>/dev/null || true
+
+ENV NODE_ENV=production
+
+CMD ["bash"]

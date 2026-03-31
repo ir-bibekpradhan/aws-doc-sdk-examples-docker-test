@@ -1,0 +1,51 @@
+# syntax=docker/dockerfile:1
+# Variation 15: Full production-grade (all best-practices)
+# Complexity: HIGHEST
+# Multi-stage, venv, Alpine runtime, non-root user, HEALTHCHECK, LABEL,
+# BuildKit cache mount, hardened ENV, OCI labels.
+
+# ======= Stage 1: Build =======
+FROM python:3.11-alpine3.18 AS builder
+
+RUN apk add --no-cache gcc musl-dev libffi-dev openssl-dev
+
+ENV VIRTUAL_ENV=/opt/venv
+RUN python -m venv $VIRTUAL_ENV
+ENV PATH="$VIRTUAL_ENV/bin:$PATH"
+
+COPY ./python/example_code/dynamodb/requirements.txt ./requirements.txt
+
+RUN --mount=type=cache,target=/root/.cache/pip \
+    pip install --upgrade pip && \
+    pip install -r requirements.txt
+
+# ======= Stage 2: Runtime =======
+FROM python:3.11-alpine3.18 AS final
+
+RUN apk add --no-cache libffi openssl curl \
+    && addgroup -S pygroup \
+    && adduser -S -G pygroup pyuser
+
+ENV VIRTUAL_ENV=/opt/venv
+ENV PATH="$VIRTUAL_ENV/bin:$PATH"
+
+COPY --from=builder $VIRTUAL_ENV $VIRTUAL_ENV
+COPY --chown=pyuser:pygroup ./python/ /python/
+
+WORKDIR /python
+
+USER pyuser
+
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PYTHONFAULTHANDLER=1
+
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD python -c "import boto3; print('OK')" || exit 1
+
+LABEL org.opencontainers.image.title="python-aws-sdk-examples-prod" \
+      org.opencontainers.image.version="3.11" \
+      org.opencontainers.image.source="https://github.com/awsdocs/aws-doc-sdk-examples" \
+      org.opencontainers.image.licenses="Apache-2.0"
+
+CMD ["bash"]

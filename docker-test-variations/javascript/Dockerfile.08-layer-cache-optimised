@@ -1,0 +1,25 @@
+# syntax=docker/dockerfile:1
+# Variation 08: Layer-cache optimised (package.json first)
+# Complexity: LOW-MEDIUM
+# node_modules layer only re-builds when package*.json changes.
+
+FROM node:18-slim
+
+WORKDIR /javascriptv3
+
+# --- Layer 1: deps (changes rarely) ---
+COPY ./javascriptv3/package*.json ./
+
+RUN npm ci --omit=dev
+
+# --- Layer 2: source (changes often) ---
+COPY ./javascriptv3/ .
+
+ENV NODE_ENV=production \
+    NODE_OPTIONS="--max-old-space-size=512"
+
+LABEL org.opencontainers.image.title="javascriptv3-aws-sdk-examples" \
+      org.opencontainers.image.version="18" \
+      org.opencontainers.image.licenses="Apache-2.0"
+
+CMD ["bash"]

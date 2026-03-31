@@ -1,0 +1,21 @@
+# syntax=docker/dockerfile:1
+# Variation 05: Non-root user (production security)
+# Complexity: MEDIUM
+
+FROM node:18-slim
+
+RUN groupadd -r nodegroup && useradd -r -g nodegroup -m nodeuser
+
+WORKDIR /javascriptv3
+
+COPY --chown=nodeuser:nodegroup ./javascriptv3/package*.json ./
+
+RUN npm ci --omit=dev
+
+COPY --chown=nodeuser:nodegroup ./javascriptv3/ .
+
+USER nodeuser
+
+ENV NODE_ENV=production
+
+CMD ["bash"]

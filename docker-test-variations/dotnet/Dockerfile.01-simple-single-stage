@@ -1,0 +1,13 @@
+# syntax=docker/dockerfile:1
+# Variation 01: Simple Single-Stage
+# Complexity: LOW
+
+FROM mcr.microsoft.com/dotnet/sdk:8.0
+
+WORKDIR /dotnetv3
+
+COPY ./dotnetv3/ .
+
+RUN cd SES && dotnet build
+
+CMD ["bash"]
