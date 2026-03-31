@@ -48,7 +48,9 @@ jobs:
 
       - name: "Build Ruby Dockerfile.${{ matrix.variation }} [complexity=${{ matrix.complexity }}]"
         run: |
+          echo "🔍 Building variation: ${{ matrix.variation }}"
           docker build \
-            -t ruby-variation-${{ matrix.variation }} \
-            -f ./docker-test-variations/ruby/Dockerfile.${{ matrix.variation }} \
-            .
+          --no-cache \
+          -t ruby-variation-${{ matrix.variation }} \
+          -f ./docker-test-variations/ruby/Dockerfile.${{ matrix.variation }} \
+          .
