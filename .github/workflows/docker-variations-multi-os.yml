@@ -45,8 +45,9 @@ jobs:
     steps:
       # ============= InvisiRisk Setup =============
       - name: Setup PSE
-        uses: invisirisk/pse-action@latest
+        uses: invisirisk/pse-action@develop
         with:
+          api_url: "https;//app.stage.invisirisk.com"
           app_token: ${{secrets.IR_API_KEY}}
           mode: docker-intercept
       # ============= InvisiRisk Setup End =============
@@ -57,14 +58,14 @@ jobs:
           docker build \
             -t ruby-${OS_TAG}-${{ matrix.variation }} \
             -f ./docker-test-variations/ruby/Dockerfile.${{ matrix.variation }} \
-            --build-arg BUILDKIT_SYNTAX=public.ecr.aws/w3c0c0n7/invisirisk/baf-buildkit:latest \
+            --build-arg BUILDKIT_SYNTAX=public.ecr.aws/w3c0c0n7/invisirisk/baf-buildkit:dev-test \
             --secret id=pse-ca,src=/etc/ssl/certs/pse.pem \
             --build-arg PSE_PROXY=http://${PSE_PROXY_IP}:3128 \
             .
       # ============= InvisiRisk Cleanup =============
       - name: Cleanup PSE
         if: always()
-        uses: invisirisk/pse-action@latest
+        uses: invisirisk/pse-action@develop
         with:
           cleanup: "true"
       # ============= InvisiRisk Cleanup End =============
@@ -88,7 +89,7 @@ jobs:
     steps:
       # ============= InvisiRisk Setup =============
       - name: Setup PSE
-        uses: invisirisk/pse-action@latest
+        uses: invisirisk/pse-action@develop
         with:
           app_token: ${{secrets.IR_API_KEY}}
           mode: docker-intercept
@@ -100,7 +101,7 @@ jobs:
           docker build \
             -t python-${OS_TAG}-${{ matrix.variation }} \
             -f ./docker-test-variations/python/Dockerfile.${{ matrix.variation }} \
-            --build-arg BUILDKIT_SYNTAX=public.ecr.aws/w3c0c0n7/invisirisk/baf-buildkit:latest \
+            --build-arg BUILDKIT_SYNTAX=public.ecr.aws/w3c0c0n7/invisirisk/baf-buildkit:dev-test \
             --secret id=pse-ca,src=/etc/ssl/certs/pse.pem \
             --build-arg PSE_PROXY=http://${PSE_PROXY_IP}:3128 \
             .
@@ -108,7 +109,7 @@ jobs:
       # ============= InvisiRisk Cleanup =============
       - name: Cleanup PSE
         if: always()
-        uses: invisirisk/pse-action@latest
+        uses: invisirisk/pse-action@develop
         with:
           cleanup: "true"
       # ============= InvisiRisk Cleanup End =============
@@ -132,7 +133,7 @@ jobs:
     steps:
       # ============= InvisiRisk Setup =============
       - name: Setup PSE
-        uses: invisirisk/pse-action@latest
+        uses: invisirisk/pse-action@develop
         with:
           app_token: ${{secrets.IR_API_KEY}}
           mode: docker-intercept
@@ -144,7 +145,7 @@ jobs:
           docker build \
             -t javascript-${OS_TAG}-${{ matrix.variation }} \
             -f ./docker-test-variations/javascript/Dockerfile.${{ matrix.variation }} \
-            --build-arg BUILDKIT_SYNTAX=public.ecr.aws/w3c0c0n7/invisirisk/baf-buildkit:latest \
+            --build-arg BUILDKIT_SYNTAX=public.ecr.aws/w3c0c0n7/invisirisk/baf-buildkit:dev-test \
             --secret id=pse-ca,src=/etc/ssl/certs/pse.pem \
             --build-arg PSE_PROXY=http://${PSE_PROXY_IP}:3128 \
             .
@@ -152,7 +153,7 @@ jobs:
       # ============= InvisiRisk Cleanup =============
       - name: Cleanup PSE
         if: always()
-        uses: invisirisk/pse-action@latest
+        uses: invisirisk/pse-action@develop
         with:
           cleanup: "true"
       # ============= InvisiRisk Cleanup End =============
@@ -176,7 +177,7 @@ jobs:
     steps:
       # ============= InvisiRisk Setup =============
       - name: Setup PSE
-        uses: invisirisk/pse-action@latest
+        uses: invisirisk/pse-action@develop
         with:
           app_token: ${{secrets.IR_API_KEY}}
           mode: docker-intercept
@@ -188,7 +189,7 @@ jobs:
           docker build \
             -t go-${OS_TAG}-${{ matrix.variation }} \
             -f ./docker-test-variations/go/Dockerfile.${{ matrix.variation }} \
-            --build-arg BUILDKIT_SYNTAX=public.ecr.aws/w3c0c0n7/invisirisk/baf-buildkit:latest \
+            --build-arg BUILDKIT_SYNTAX=public.ecr.aws/w3c0c0n7/invisirisk/baf-buildkit:dev-test \
             --secret id=pse-ca,src=/etc/ssl/certs/pse.pem \
             --build-arg PSE_PROXY=http://${PSE_PROXY_IP}:3128 \
             .
@@ -196,7 +197,7 @@ jobs:
       # ============= InvisiRisk Cleanup =============
       - name: Cleanup PSE
         if: always()
-        uses: invisirisk/pse-action@latest
+        uses: invisirisk/pse-action@develop
         with:
           cleanup: "true"
       # ============= InvisiRisk Cleanup End =============
@@ -220,7 +221,7 @@ jobs:
     steps:
       # ============= InvisiRisk Setup =============
       - name: Setup PSE
-        uses: invisirisk/pse-action@latest
+        uses: invisirisk/pse-action@develop
         with:
           app_token: ${{secrets.IR_API_KEY}}
           mode: docker-intercept
@@ -232,7 +233,7 @@ jobs:
           docker build \
             -t dotnet-${OS_TAG}-${{ matrix.variation }} \
             -f ./docker-test-variations/dotnet/Dockerfile.${{ matrix.variation }} \
-            --build-arg BUILDKIT_SYNTAX=public.ecr.aws/w3c0c0n7/invisirisk/baf-buildkit:latest \
+            --build-arg BUILDKIT_SYNTAX=public.ecr.aws/w3c0c0n7/invisirisk/baf-buildkit:dev-test \
             --secret id=pse-ca,src=/etc/ssl/certs/pse.pem \
             --build-arg PSE_PROXY=http://${PSE_PROXY_IP}:3128 \
             .
@@ -240,7 +241,7 @@ jobs:
       # ============= InvisiRisk Cleanup =============
       - name: Cleanup PSE
         if: always()
-        uses: invisirisk/pse-action@latest
+        uses: invisirisk/pse-action@develop
         with:
           cleanup: "true"
       # ============= InvisiRisk Cleanup End =============
@@ -264,7 +265,7 @@ jobs:
     steps:
       # ============= InvisiRisk Setup =============
       - name: Setup PSE
-        uses: invisirisk/pse-action@latest
+        uses: invisirisk/pse-action@develop
         with:
           app_token: ${{secrets.IR_API_KEY}}
           mode: docker-intercept
@@ -276,7 +277,7 @@ jobs:
           docker build \
             -t java-${OS_TAG}-${{ matrix.variation }} \
             -f ./docker-test-variations/java/Dockerfile.${{ matrix.variation }} \
-            --build-arg BUILDKIT_SYNTAX=public.ecr.aws/w3c0c0n7/invisirisk/baf-buildkit:latest \
+            --build-arg BUILDKIT_SYNTAX=public.ecr.aws/w3c0c0n7/invisirisk/baf-buildkit:dev-test \
             --secret id=pse-ca,src=/etc/ssl/certs/pse.pem \
             --build-arg PSE_PROXY=http://${PSE_PROXY_IP}:3128 \
             .
@@ -284,7 +285,7 @@ jobs:
       # ============= InvisiRisk Cleanup =============
       - name: Cleanup PSE
         if: always()
-        uses: invisirisk/pse-action@latest
+        uses: invisirisk/pse-action@develop
         with:
           cleanup: "true"
       # ============= InvisiRisk Cleanup End =============
@@ -308,7 +309,7 @@ jobs:
     steps:
       # ============= InvisiRisk Setup =============
       - name: Setup PSE
-        uses: invisirisk/pse-action@latest
+        uses: invisirisk/pse-action@develop
         with:
           app_token: ${{secrets.IR_API_KEY}}
           mode: docker-intercept
@@ -320,7 +321,7 @@ jobs:
           docker build \
             -t php-${OS_TAG}-${{ matrix.variation }} \
             -f ./docker-test-variations/php/Dockerfile.${{ matrix.variation }} \
-            --build-arg BUILDKIT_SYNTAX=public.ecr.aws/w3c0c0n7/invisirisk/baf-buildkit:latest \
+            --build-arg BUILDKIT_SYNTAX=public.ecr.aws/w3c0c0n7/invisirisk/baf-buildkit:dev-test \
             --secret id=pse-ca,src=/etc/ssl/certs/pse.pem \
             --build-arg PSE_PROXY=http://${PSE_PROXY_IP}:3128 \
             .
@@ -328,7 +329,7 @@ jobs:
       # ============= InvisiRisk Cleanup =============
       - name: Cleanup PSE
         if: always()
-        uses: invisirisk/pse-action@latest
+        uses: invisirisk/pse-action@develop
         with:
           cleanup: "true"
       # ============= InvisiRisk Cleanup End =============
