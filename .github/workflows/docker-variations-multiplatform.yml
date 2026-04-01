@@ -62,7 +62,7 @@ jobs:
             --platform linux/amd64,linux/arm64 \
             --file ./docker-test-variations/ruby/Dockerfile.${{ matrix.variation }} \
             --tag ruby-multiplatform-${{ matrix.variation }}:latest \
-            --no-push \
+            --output type=image,push=false \
             .
 
   # ──────────────────────────────────────────────────────
@@ -100,7 +100,7 @@ jobs:
             --platform linux/amd64,linux/arm64 \
             --file ./docker-test-variations/python/Dockerfile.${{ matrix.variation }} \
             --tag python-multiplatform-${{ matrix.variation }}:latest \
-            --no-push \
+            --output type=image,push=false \
             .
 
   # ──────────────────────────────────────────────────────
@@ -138,7 +138,7 @@ jobs:
             --platform linux/amd64,linux/arm64 \
             --file ./docker-test-variations/javascript/Dockerfile.${{ matrix.variation }} \
             --tag javascript-multiplatform-${{ matrix.variation }}:latest \
-            --no-push \
+            --output type=image,push=false \
             .
 
   # ──────────────────────────────────────────────────────
@@ -176,7 +176,7 @@ jobs:
             --platform linux/amd64,linux/arm64 \
             --file ./docker-test-variations/go/Dockerfile.${{ matrix.variation }} \
             --tag go-multiplatform-${{ matrix.variation }}:latest \
-            --no-push \
+            --output type=image,push=false \
             .
 
   # ──────────────────────────────────────────────────────
@@ -214,7 +214,7 @@ jobs:
             --platform linux/amd64,linux/arm64 \
             --file ./docker-test-variations/dotnet/Dockerfile.${{ matrix.variation }} \
             --tag dotnet-multiplatform-${{ matrix.variation }}:latest \
-            --no-push \
+            --output type=image,push=false \
             .
 
   # ──────────────────────────────────────────────────────
@@ -252,7 +252,7 @@ jobs:
             --platform linux/amd64,linux/arm64 \
             --file ./docker-test-variations/java/Dockerfile.${{ matrix.variation }} \
             --tag java-multiplatform-${{ matrix.variation }}:latest \
-            --no-push \
+            --output type=image,push=false \
             .
 
   # ──────────────────────────────────────────────────────
@@ -290,5 +290,5 @@ jobs:
             --platform linux/amd64,linux/arm64 \
             --file ./docker-test-variations/php/Dockerfile.${{ matrix.variation }} \
             --tag php-multiplatform-${{ matrix.variation }}:latest \
-            --no-push \
+            --output type=image,push=false \
             .
