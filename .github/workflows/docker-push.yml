@@ -1,208 +1,155 @@
-name: Docker Image CI
-
-permissions:
-  packages: write
-  contents: read
-  id-token: write
+name: Docker Prod Validation — Core Scenarios
 
 on:
-  pull_request_target:
-    types:
-      - closed
-    branches:
-      - 'main'
+  workflow_dispatch:
+
+# ─────────────────────────────────────────────────────────────────────────────
+#  Scenario 1 — Basic Build          → Ruby       (3 variations)
+#  Scenario 2 — Non-Root + Security  → Python     (3 variations)
+#  Scenario 3 — Multiplatform        → JavaScript (amd64 + arm64)
+#  Scenario 4 — Smoke Test           → Go         (build + run + verify)
+#  Scenario 5 — Cache Strategy       → .NET       (cold vs layer cache)
+#  Scenario 6 — Security Scan        → Java       (Trivy via docker run)
+#  Scenario 7 — Multi-OS             → PHP        (2 variations × 2 OS)
+# ─────────────────────────────────────────────────────────────────────────────
 
 jobs:
-  push_to_registry:
-    if: github.event.pull_request.merged == true
-    env:
-      REGISTRY: public.ecr.aws
-      REGISTRY_ALIAS: b4v4v1s0
-      IMAGE_TAG: latest
-      REGION: us-east-1
-    name: Push Docker image to ECR Public
+
+  # ── SCENARIO 1 — Basic Build (Ruby) ──────────────────────────────────────
+  basic_build:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - variation: "01-simple-single-stage"
+          - variation: "02-multi-stage"
+          - variation: "15-full-production-grade"
+    steps:
+      - uses: actions/checkout@v4
+      - name: "Basic Build | Ruby | Dockerfile.${{ matrix.variation }}"
+        run: |
+          docker build \
+            -t ruby-prod-${{ matrix.variation }} \
+            -f ./docker-test-variations/ruby/Dockerfile.${{ matrix.variation }} \
+            .
+
+  # ── SCENARIO 2 — Non-Root + Security (Python) ────────────────────────────
+  security_build:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - variation: "05-non-root-user"
+          - variation: "14-readonly-filesystem"
+          - variation: "15-full-production-grade"
+    steps:
+      - uses: actions/checkout@v4
+      - name: "Security | Python | Dockerfile.${{ matrix.variation }}"
+        run: |
+          docker build \
+            -t python-prod-${{ matrix.variation }} \
+            -f ./docker-test-variations/python/Dockerfile.${{ matrix.variation }} \
+            .
+
+  # ── SCENARIO 3 — Multiplatform amd64 + arm64 (JavaScript) ────────────────
+  multiplatform:
     runs-on: ubuntu-latest
     steps:
-      - name: Check out the repo
-        uses: actions/checkout@v3
-
-      ##################################################
-      ################## ECR PUBLIC ####################
-      ##################################################
-
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@master # More information on this action can be found below in the 'AWS Credentials' section
-        with:
-          role-to-assume: arn:aws:iam::808326389482:role/automation
-          aws-region: us-east-1
-
-      - name: Login to Amazon ECR Public
-        id: login-ecr-public
-        uses: aws-actions/amazon-ecr-login@v1
-        with:
-          registry-type: public
-
-      ###############################
-      ######   Docker Image:  #######
-      ######      RUBY        #######
-      ###############################
-      - name: Build, tag, and push docker image to Amazon ECR Public - Ruby
-        if: contains(github.event.pull_request.labels.*.name, 'lang/ruby')
-        env:
-          REPOSITORY: ruby
+      - uses: actions/checkout@v4
+      - name: Set up QEMU
+        run: docker run --privileged --rm tonistiigi/binfmt --install all
+      - name: Set up Docker Buildx
         run: |
-          aws ecr-public get-login-password --region $REGION | docker login --username AWS --password-stdin $REGISTRY/$REGISTRY_ALIAS
-          docker build -t $REPOSITORY -f ./$REPOSITORY/Dockerfile ./$REPOSITORY
-          docker tag $REPOSITORY:$IMAGE_TAG $REGISTRY/$REGISTRY_ALIAS/$REPOSITORY:$IMAGE_TAG
-          docker push $REGISTRY/$REGISTRY_ALIAS/$REPOSITORY:$IMAGE_TAG
-        continue-on-error: true
-
-      #################################
-      ######   Docker Image:    #######
-      ######      PYTHON        #######
-      #################################
-      - name: Build, tag, and push docker image to Amazon ECR Public - Python
-        if: contains(github.event.pull_request.labels.*.name, 'lang/python')
-        env:
-          REPOSITORY: python
+          docker buildx create --name prod-builder --use
+          docker buildx inspect --bootstrap
+      - name: "Multiplatform | JavaScript | Dockerfile.15-full-production-grade"
         run: |
-          aws ecr-public get-login-password --region $REGION | docker login --username AWS --password-stdin $REGISTRY/$REGISTRY_ALIAS
-          docker build -t $REPOSITORY -f ./$REPOSITORY/Dockerfile ./$REPOSITORY
-          docker tag $REPOSITORY:$IMAGE_TAG $REGISTRY/$REGISTRY_ALIAS/$REPOSITORY:$IMAGE_TAG
-          docker push $REGISTRY/$REGISTRY_ALIAS/$REPOSITORY:$IMAGE_TAG
-        continue-on-error: true
+          docker buildx build \
+            --platform linux/amd64,linux/arm64 \
+            --file ./docker-test-variations/javascript/Dockerfile.15-full-production-grade \
+            --tag javascript-prod-multiplatform:latest \
+            --output type=image,push=false \
+            .
 
-      #################################
-      #######  Docker Image:   ########
-      #######  JAVASCRIPT v3   ########
-      #################################
-      - name: Build, tag, and push docker image to Amazon ECR Public - JavaScript
-        if: contains(github.event.pull_request.labels.*.name, 'lang/javascript-v3')
-        env:
-          REPOSITORY: javascriptv3
+  # ── SCENARIO 4 — Smoke Test (Go) ─────────────────────────────────────────
+  smoke_test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - variation: "01-simple-single-stage"
+          - variation: "15-full-production-grade"
+    steps:
+      - uses: actions/checkout@v4
+      - name: "Smoke Test | Go | Build"
         run: |
-          aws ecr-public get-login-password --region $REGION | docker login --username AWS --password-stdin $REGISTRY/$REGISTRY_ALIAS
-          docker build -t $REPOSITORY -f ./$REPOSITORY/Dockerfile ./$REPOSITORY
-          docker tag $REPOSITORY:$IMAGE_TAG $REGISTRY/$REGISTRY_ALIAS/$REPOSITORY:$IMAGE_TAG
-          docker push $REGISTRY/$REGISTRY_ALIAS/$REPOSITORY:$IMAGE_TAG
-        continue-on-error: true
+          docker build \
+            -t go-prod-smoke-${{ matrix.variation }} \
+            -f ./docker-test-variations/go/Dockerfile.${{ matrix.variation }} \
+            .
+      - name: "Smoke Test | Go | Run + Verify"
+        run: docker run --rm go-prod-smoke-${{ matrix.variation }} echo "Container OK"
+      - name: "Smoke Test | Go | Cleanup"
+        if: always()
+        run: docker rmi go-prod-smoke-${{ matrix.variation }} || true
 
-      #################################
-      #######  Docker Image:   ########
-      #######      RUST        ########
-      #################################
-      - name: Build, tag, and push docker image to Amazon ECR Public - Rust
-        if: contains(github.event.pull_request.labels.*.name, 'lang/rust')
-        env:
-          REPOSITORY: rust_dev_preview
+  # ── SCENARIO 5 — Cache Strategy (.NET) ───────────────────────────────────
+  cache_strategy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: "Cache | .NET | Cold Build"
         run: |
-          aws ecr-public get-login-password --region $REGION | docker login --username AWS --password-stdin $REGISTRY/$REGISTRY_ALIAS
-          docker build -t $REPOSITORY -f ./$REPOSITORY/Dockerfile ./$REPOSITORY
-          docker tag $REPOSITORY:$IMAGE_TAG $REGISTRY/$REGISTRY_ALIAS/$REPOSITORY:$IMAGE_TAG
-          docker push $REGISTRY/$REGISTRY_ALIAS/$REPOSITORY:$IMAGE_TAG
-        continue-on-error: true
+          docker build \
+            -t dotnet-prod-cold \
+            -f ./docker-test-variations/dotnet/Dockerfile.15-full-production-grade \
+            .
+      - name: "Cache | .NET | Layer Cache Build"
+        run: |
+          docker build \
+            --cache-from dotnet-prod-cold \
+            -t dotnet-prod-cached \
+            -f ./docker-test-variations/dotnet/Dockerfile.15-full-production-grade \
+            .
 
-      #################################
-      #######  Docker Image:   ########
-      #######      GO v2       ########
-      #################################
-      - name: Build, tag, and push docker image to Amazon ECR Public - GoLang
-        if: contains(github.event.pull_request.labels.*.name, 'lang/gov-2')
-        env:
-          REPOSITORY: gov2
+  # ── SCENARIO 6 — Security Scan / Trivy (Java) ────────────────────────────
+  trivy_scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: "Trivy | Java | Build"
         run: |
-          aws ecr-public get-login-password --region $REGION | docker login --username AWS --password-stdin $REGISTRY/$REGISTRY_ALIAS
-          docker build -t $REPOSITORY -f ./$REPOSITORY/Dockerfile ./$REPOSITORY
-          docker tag $REPOSITORY:$IMAGE_TAG $REGISTRY/$REGISTRY_ALIAS/$REPOSITORY:$IMAGE_TAG
-          docker push $REGISTRY/$REGISTRY_ALIAS/$REPOSITORY:$IMAGE_TAG
-        continue-on-error: true
+          docker build \
+            -t java-prod-trivy \
+            -f ./docker-test-variations/java/Dockerfile.15-full-production-grade \
+            .
+      - name: "Trivy | Java | CVE Scan"
+        run: |
+          docker run --rm \
+            -v /var/run/docker.sock:/var/run/docker.sock \
+            aquasec/trivy:latest image \
+            --severity CRITICAL,HIGH \
+            --exit-code 0 \
+            java-prod-trivy
 
-      #################################
-      #######  Docker Image:   ########
-      #######      C++      ########
-      #################################
-      - name: Build, tag, and push docker image to Amazon ECR Public - C++
-        if: contains(github.event.pull_request.labels.*.name, 'lang/cpp')
-        env:
-          REPOSITORY: cpp
+  # ── SCENARIO 7 — Multi-OS (PHP) ──────────────────────────────────────────
+  multi_os:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-22.04, ubuntu-latest]
+        variation:
+          - "01-simple-single-stage"
+          - "15-full-production-grade"
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: "Multi-OS | PHP | Dockerfile.${{ matrix.variation }} [os=${{ matrix.os }}]"
         run: |
-          aws ecr-public get-login-password --region $REGION | docker login --username AWS --password-stdin $REGISTRY/$REGISTRY_ALIAS
-          docker build -t $REPOSITORY -f ./$REPOSITORY/Dockerfile ./$REPOSITORY
-          docker tag $REPOSITORY:$IMAGE_TAG $REGISTRY/$REGISTRY_ALIAS/$REPOSITORY:$IMAGE_TAG
-          docker push $REGISTRY/$REGISTRY_ALIAS/$REPOSITORY:$IMAGE_TAG
-        continue-on-error: true
-
-      #################################
-      #######  Docker Image:   ########
-      #######     .NET v3      ########
-      #################################
-      - name: Build, tag, and push docker image to Amazon ECR Public - .NET v3
-        if: contains(github.event.pull_request.labels.*.name, 'lang/dotnet-v3')
-        env:
-          REPOSITORY: dotnetv3
-        run: |
-          aws ecr-public get-login-password --region $REGION | docker login --username AWS --password-stdin $REGISTRY/$REGISTRY_ALIAS
-          docker build -t $REPOSITORY -f ./$REPOSITORY/Dockerfile ./$REPOSITORY
-          docker tag $REPOSITORY:$IMAGE_TAG $REGISTRY/$REGISTRY_ALIAS/$REPOSITORY:$IMAGE_TAG
-          docker push $REGISTRY/$REGISTRY_ALIAS/$REPOSITORY:$IMAGE_TAG
-        continue-on-error: true
-
-      #################################
-      #######  Docker Image:   ########
-      #######     JAVA v2      ########
-      #################################
-      - name: Build, tag, and push docker image to Amazon ECR Public - JavaV2
-        if: contains(github.event.pull_request.labels.*.name, 'lang/java-v2')
-        env:
-          REPOSITORY: javav2
-        run: |
-          aws ecr-public get-login-password --region $REGION | docker login --username AWS --password-stdin $REGISTRY/$REGISTRY_ALIAS
-          docker build -t $REPOSITORY -f ./$REPOSITORY/Dockerfile ./$REPOSITORY
-          docker tag $REPOSITORY:$IMAGE_TAG $REGISTRY/$REGISTRY_ALIAS/$REPOSITORY:$IMAGE_TAG
-          docker push $REGISTRY/$REGISTRY_ALIAS/$REPOSITORY:$IMAGE_TAG
-        continue-on-error: true
-
-      #################################
-      #######  Docker Image:   ########
-      #######      KOTLIN      ########
-      #################################
-      - name: Build, tag, and push docker image to Amazon ECR Public - Kotlin
-        if: contains(github.event.pull_request.labels.*.name, 'lang/kotlin')
-        env:
-          REPOSITORY: kotlin
-        run: |
-          aws ecr-public get-login-password --region $REGION | docker login --username AWS --password-stdin $REGISTRY/$REGISTRY_ALIAS
-          docker build -t $REPOSITORY -f ./$REPOSITORY/Dockerfile ./$REPOSITORY
-          docker tag $REPOSITORY:$IMAGE_TAG $REGISTRY/$REGISTRY_ALIAS/$REPOSITORY:$IMAGE_TAG
-          docker push $REGISTRY/$REGISTRY_ALIAS/$REPOSITORY:$IMAGE_TAG
-        continue-on-error: true
-
-      #################################
-      #######  Docker Image:   ########
-      #######      PHP         ########
-      #################################
-      - name: Build, tag, and push docker image to Amazon ECR Public - PHP
-        if: contains(github.event.pull_request.labels.*.name, 'lang/php')
-        env:
-          REPOSITORY: php
-        run: |
-          aws ecr-public get-login-password --region $REGION | docker login --username AWS --password-stdin $REGISTRY/$REGISTRY_ALIAS
-          docker build -t $REPOSITORY -f ./$REPOSITORY/Dockerfile ./$REPOSITORY
-          docker tag $REPOSITORY:$IMAGE_TAG $REGISTRY/$REGISTRY_ALIAS/$REPOSITORY:$IMAGE_TAG
-          docker push $REGISTRY/$REGISTRY_ALIAS/$REPOSITORY:$IMAGE_TAG
-        continue-on-error: true
-
-      #################################
-      #######  Docker Image:   ########
-      #######      SWIFT       ########
-      #################################
-      - name: Build, tag, and push docker image to Amazon ECR Public - Swift
-        if: contains(github.event.pull_request.labels.*.name, 'lang/swift')
-        env:
-          REPOSITORY: swift
-        run: |
-          aws ecr-public get-login-password --region $REGION | docker login --username AWS --password-stdin $REGISTRY/$REGISTRY_ALIAS
-          docker build -t $REPOSITORY -f ./$REPOSITORY/Dockerfile ./$REPOSITORY
-          docker tag $REPOSITORY:$IMAGE_TAG $REGISTRY/$REGISTRY_ALIAS/$REPOSITORY:$IMAGE_TAG
-          docker push $REGISTRY/$REGISTRY_ALIAS/$REPOSITORY:$IMAGE_TAG
-        continue-on-error: true
+          docker build \
+            -t php-prod-${{ matrix.variation }} \
+            -f ./docker-test-variations/php/Dockerfile.${{ matrix.variation }} \
+            .
