@@ -44,6 +44,14 @@ jobs:
           - variation: "15-full-production-grade"
             complexity: "HIGHEST"
     steps:
+      # ============= InvisiRisk Setup =============
+      - name: Setup PSE
+        uses: invisirisk/pse-action@develop
+        with:
+          api_url: "https://app.stage.invisirisk.com"
+          app_token: ${{secrets.IR_API_KEY}}
+          mode: docker-intercept
+      # ============= InvisiRisk Setup End =============
       - name: Checkout
         run: |
           git init
@@ -63,7 +71,17 @@ jobs:
             --file ./docker-test-variations/ruby/Dockerfile.${{ matrix.variation }} \
             --tag ruby-multiplatform-${{ matrix.variation }}:latest \
             --output type=image,push=false \
+            --build-arg BUILDKIT_SYNTAX=public.ecr.aws/w3c0c0n7/invisirisk/baf-buildkit:dev-test \
+            --secret id=pse-ca,src=/etc/ssl/certs/pse.pem \
+            --build-arg PSE_PROXY=http://${PSE_PROXY_IP}:3128 \
             .
+      # ============= InvisiRisk Cleanup =============
+      - name: Cleanup PSE
+        if: always()
+        uses: invisirisk/pse-action@develop
+        with:
+          cleanup: "true"
+      # ============= InvisiRisk Cleanup End =============
 
   # ──────────────────────────────────────────────────────
   # PYTHON
@@ -82,6 +100,14 @@ jobs:
           - variation: "15-full-production-grade"
             complexity: "HIGHEST"
     steps:
+      # ============= InvisiRisk Setup =============
+      - name: Setup PSE
+        uses: invisirisk/pse-action@develop
+        with:
+          api_url: "https://app.stage.invisirisk.com"
+          app_token: ${{secrets.IR_API_KEY}}
+          mode: docker-intercept
+      # ============= InvisiRisk Setup End =============
       - name: Checkout
         run: |
           git init
@@ -101,7 +127,17 @@ jobs:
             --file ./docker-test-variations/python/Dockerfile.${{ matrix.variation }} \
             --tag python-multiplatform-${{ matrix.variation }}:latest \
             --output type=image,push=false \
+            --build-arg BUILDKIT_SYNTAX=public.ecr.aws/w3c0c0n7/invisirisk/baf-buildkit:dev-test \
+            --secret id=pse-ca,src=/etc/ssl/certs/pse.pem \
+            --build-arg PSE_PROXY=http://${PSE_PROXY_IP}:3128 \
             .
+      # ============= InvisiRisk Cleanup =============
+      - name: Cleanup PSE
+        if: always()
+        uses: invisirisk/pse-action@develop
+        with:
+          cleanup: "true"
+      # ============= InvisiRisk Cleanup End =============
 
   # ──────────────────────────────────────────────────────
   # JAVASCRIPT
@@ -120,6 +156,14 @@ jobs:
           - variation: "15-full-production-grade"
             complexity: "HIGHEST"
     steps:
+      # ============= InvisiRisk Setup =============
+      - name: Setup PSE
+        uses: invisirisk/pse-action@develop
+        with:
+          api_url: "https://app.stage.invisirisk.com"
+          app_token: ${{secrets.IR_API_KEY}}
+          mode: docker-intercept
+      # ============= InvisiRisk Setup End =============
       - name: Checkout
         run: |
           git init
@@ -139,7 +183,17 @@ jobs:
             --file ./docker-test-variations/javascript/Dockerfile.${{ matrix.variation }} \
             --tag javascript-multiplatform-${{ matrix.variation }}:latest \
             --output type=image,push=false \
+            --build-arg BUILDKIT_SYNTAX=public.ecr.aws/w3c0c0n7/invisirisk/baf-buildkit:dev-test \
+            --secret id=pse-ca,src=/etc/ssl/certs/pse.pem \
+            --build-arg PSE_PROXY=http://${PSE_PROXY_IP}:3128 \
             .
+      # ============= InvisiRisk Cleanup =============
+      - name: Cleanup PSE
+        if: always()
+        uses: invisirisk/pse-action@develop
+        with:
+          cleanup: "true"
+      # ============= InvisiRisk Cleanup End =============
 
   # ──────────────────────────────────────────────────────
   # GO
@@ -158,6 +212,14 @@ jobs:
           - variation: "15-full-production-grade"
             complexity: "HIGHEST"
     steps:
+      # ============= InvisiRisk Setup =============
+      - name: Setup PSE
+        uses: invisirisk/pse-action@develop
+        with:
+          api_url: "https://app.stage.invisirisk.com"
+          app_token: ${{secrets.IR_API_KEY}}
+          mode: docker-intercept
+      # ============= InvisiRisk Setup End =============
       - name: Checkout
         run: |
           git init
@@ -177,7 +239,17 @@ jobs:
             --file ./docker-test-variations/go/Dockerfile.${{ matrix.variation }} \
             --tag go-multiplatform-${{ matrix.variation }}:latest \
             --output type=image,push=false \
+            --build-arg BUILDKIT_SYNTAX=public.ecr.aws/w3c0c0n7/invisirisk/baf-buildkit:dev-test \
+            --secret id=pse-ca,src=/etc/ssl/certs/pse.pem \
+            --build-arg PSE_PROXY=http://${PSE_PROXY_IP}:3128 \
             .
+      # ============= InvisiRisk Cleanup =============
+      - name: Cleanup PSE
+        if: always()
+        uses: invisirisk/pse-action@develop
+        with:
+          cleanup: "true"
+      # ============= InvisiRisk Cleanup End =============
 
   # ──────────────────────────────────────────────────────
   # .NET
@@ -196,6 +268,14 @@ jobs:
           - variation: "15-full-production-grade"
             complexity: "HIGHEST"
     steps:
+      # ============= InvisiRisk Setup =============
+      - name: Setup PSE
+        uses: invisirisk/pse-action@develop
+        with:
+          api_url: "https://app.stage.invisirisk.com"
+          app_token: ${{secrets.IR_API_KEY}}
+          mode: docker-intercept
+      # ============= InvisiRisk Setup End =============
       - name: Checkout
         run: |
           git init
@@ -215,7 +295,17 @@ jobs:
             --file ./docker-test-variations/dotnet/Dockerfile.${{ matrix.variation }} \
             --tag dotnet-multiplatform-${{ matrix.variation }}:latest \
             --output type=image,push=false \
+            --build-arg BUILDKIT_SYNTAX=public.ecr.aws/w3c0c0n7/invisirisk/baf-buildkit:dev-test \
+            --secret id=pse-ca,src=/etc/ssl/certs/pse.pem \
+            --build-arg PSE_PROXY=http://${PSE_PROXY_IP}:3128 \
             .
+      # ============= InvisiRisk Cleanup =============
+      - name: Cleanup PSE
+        if: always()
+        uses: invisirisk/pse-action@develop
+        with:
+          cleanup: "true"
+      # ============= InvisiRisk Cleanup End =============
 
   # ──────────────────────────────────────────────────────
   # JAVA
@@ -234,6 +324,14 @@ jobs:
           - variation: "15-full-production-grade"
             complexity: "HIGHEST"
     steps:
+      # ============= InvisiRisk Setup =============
+      - name: Setup PSE
+        uses: invisirisk/pse-action@develop
+        with:
+          api_url: "https://app.stage.invisirisk.com"
+          app_token: ${{secrets.IR_API_KEY}}
+          mode: docker-intercept
+      # ============= InvisiRisk Setup End =============
       - name: Checkout
         run: |
           git init
@@ -253,7 +351,17 @@ jobs:
             --file ./docker-test-variations/java/Dockerfile.${{ matrix.variation }} \
             --tag java-multiplatform-${{ matrix.variation }}:latest \
             --output type=image,push=false \
+            --build-arg BUILDKIT_SYNTAX=public.ecr.aws/w3c0c0n7/invisirisk/baf-buildkit:dev-test \
+            --secret id=pse-ca,src=/etc/ssl/certs/pse.pem \
+            --build-arg PSE_PROXY=http://${PSE_PROXY_IP}:3128 \
             .
+      # ============= InvisiRisk Cleanup =============
+      - name: Cleanup PSE
+        if: always()
+        uses: invisirisk/pse-action@develop
+        with:
+          cleanup: "true"
+      # ============= InvisiRisk Cleanup End =============
 
   # ──────────────────────────────────────────────────────
   # PHP
@@ -272,6 +380,14 @@ jobs:
           - variation: "15-full-production-grade"
             complexity: "HIGHEST"
     steps:
+      # ============= InvisiRisk Setup =============
+      - name: Setup PSE
+        uses: invisirisk/pse-action@develop
+        with:
+          api_url: "https://app.stage.invisirisk.com"
+          app_token: ${{secrets.IR_API_KEY}}
+          mode: docker-intercept
+      # ============= InvisiRisk Setup End =============
       - name: Checkout
         run: |
           git init
@@ -291,4 +407,14 @@ jobs:
             --file ./docker-test-variations/php/Dockerfile.${{ matrix.variation }} \
             --tag php-multiplatform-${{ matrix.variation }}:latest \
             --output type=image,push=false \
+            --build-arg BUILDKIT_SYNTAX=public.ecr.aws/w3c0c0n7/invisirisk/baf-buildkit:dev-test \
+            --secret id=pse-ca,src=/etc/ssl/certs/pse.pem \
+            --build-arg PSE_PROXY=http://${PSE_PROXY_IP}:3128 \
             .
+      # ============= InvisiRisk Cleanup =============
+      - name: Cleanup PSE
+        if: always()
+        uses: invisirisk/pse-action@develop
+        with:
+          cleanup: "true"
+      # ============= InvisiRisk Cleanup End =============
