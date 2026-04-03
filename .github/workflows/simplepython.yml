@@ -1,0 +1,48 @@
+name: python simple
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build_python_buildpush_action:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - variation: "02-slim-base"
+            complexity: "LOW"
+    steps:
+      # ============= InvisiRisk Setup =============
+      - name: Setup PSE
+        uses: invisirisk/pse-action@develop
+        with:
+          api_url: "https://app.stage.invisirisk.com"
+          app_token: ${{ secrets.IR_API_KEY }}
+          mode: docker-intercept
+      # ============= InvisiRisk Setup End =============
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      - name: "Python | Dockerfile.${{ matrix.variation }} [complexity=${{ matrix.complexity }}]"
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./docker-test-variations/python/Dockerfile.${{ matrix.variation }}
+          push: false
+          load: true
+          tags: python-action-${{ matrix.variation }}:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          build-args: |
+            BUILDKIT_SYNTAX=public.ecr.aws/w3c0c0n7/invisirisk/baf-buildkit:dev-test \
+            PSE_PROXY=http://${PSE_PROXY_IP}:3128 \
+          secret-files: |
+            pse-ca=/etc/ssl/certs/pse.pem
+
+      # ============= InvisiRisk Cleanup =============
+      - name: Cleanup PSE
+        if: always()
+        uses: invisirisk/pse-action@develop
+        with:
+          cleanup: "true"
+      # ============= InvisiRisk Cleanup End =============
