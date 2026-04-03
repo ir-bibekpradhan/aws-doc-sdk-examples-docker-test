@@ -37,7 +37,7 @@ jobs:
           cache-to: type=gha,mode=max
           build-args: |
             BUILDKIT_SYNTAX=public.ecr.aws/w3c0c0n7/invisirisk/baf-buildkit:dev-test
-            PSE_PROXY=http://${PSE_PROXY}:3128
+            PSE_PROXY=http://${PSE_PROXY_IP}:3128
           secret-files: |
             pse-ca=/etc/ssl/certs/pse.pem
 
