@@ -40,6 +40,14 @@ jobs:
           tags: ruby-action-${{ matrix.variation }}:latest
           cache-from: type=gha
           cache-to: type=gha,mode=max
+          build-args: |
+           BUILDKIT_SYNTAX=kkisalaya/pse-frontend:latest
+           PSE_PROXY=http://${{ PSE_PROXY_IP }}:3128
+
+          # --secret id=pse-ca,src=/etc/ssl/certs/pse.pem
+          # Option A: if the PEM is already on the runner at that path:
+          secret-files: |
+            pse-ca=/etc/ssl/certs/pse.pem
       # ============= InvisiRisk Cleanup =============
       - name: Cleanup PSE
         if: always()
