@@ -2,6 +2,8 @@ name: python simple
 
 on:
   workflow_dispatch:
+    push:
+    branches: [ main ]
 
 jobs:
   build_python_buildpush_action:
