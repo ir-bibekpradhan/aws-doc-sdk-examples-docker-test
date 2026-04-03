@@ -11,14 +11,6 @@ jobs:
         include:
           - variation: "02-multi-stage"
             complexity: "LOW-MEDIUM"
-          - variation: "04-non-root-user"
-            complexity: "MEDIUM"
-          - variation: "06-healthcheck"
-            complexity: "MEDIUM"
-          - variation: "09-layer-cache-optimised"
-            complexity: "MEDIUM"
-          - variation: "15-full-production-grade"
-            complexity: "HIGHEST"
     steps:
           # ============= InvisiRisk Setup =============
       - name: Setup PSE
